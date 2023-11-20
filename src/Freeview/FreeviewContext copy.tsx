@@ -1,28 +1,33 @@
-import React, {
-    MutableRefObject,
-    createContext,
-    useContext,
-    useRef,
-} from "react";
+import { MutableRefObject, createContext, useContext, useRef } from "react";
 
-type ViewerContextType = {
+type FreeviewContextType = {
     viewGismos: MutableRefObject<boolean>;
     rotateAxis: MutableRefObject<string>;
     rotateDegree: MutableRefObject<number>;
     rotateForward: () => void;
     subscribeToRotation: (callback: () => void) => number;
     unsubscribeFromRotation: (index: number) => void;
+
+    shape: MutableRefObject<"box" | "cylinder">;
+    setShape: (newShape: "box" | "cylinder") => void;
 };
 
-const ViewerUIContext = createContext<ViewerContextType>(
-    {} as ViewerContextType
+const FreeviewerContext = createContext<FreeviewContextType>(
+    {} as FreeviewContextType
 );
 
-export default function ViewerContext({ children }: any) {
+export default function FreeviewContext({ children }: any) {
     const viewGismos = useRef(false);
 
     const rotateAxis = useRef("");
     const rotateDegree = useRef(15);
+
+    // box default
+    const shape = useRef<"box" | "cylinder">("box");
+
+    const setShape = (newShape: "box" | "cylinder") => {
+        shape.current = newShape;
+    };
 
     // TODO : doesn't seem right
     const rotationSubscribers = useRef<[() => void]>([() => {}]);
@@ -44,7 +49,7 @@ export default function ViewerContext({ children }: any) {
     };
 
     return (
-        <ViewerUIContext.Provider
+        <FreeviewerContext.Provider
             value={{
                 viewGismos,
                 rotateAxis,
@@ -52,13 +57,14 @@ export default function ViewerContext({ children }: any) {
                 rotateForward,
                 subscribeToRotation,
                 unsubscribeFromRotation,
+                shape,
             }}
         >
             {children}
-        </ViewerUIContext.Provider>
+        </FreeviewerContext.Provider>
     );
 }
 
 export function useViewer() {
-    return useContext(ViewerUIContext);
+    return useContext(FreeviewerContext);
 }

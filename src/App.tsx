@@ -1,52 +1,42 @@
-import { Canvas, useFrame } from "@react-three/fiber";
-import KeyCam from "./KeyCam";
-import Three from "./Three";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import LandingPage from "./LandingPage";
 import { ThemeProvider } from "./components/theme-provider";
-import { Button } from "./components/ui/button";
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from "./components/ui/card";
 import { Separator } from "./components/ui/separator";
 import Navbar from "./navbar";
-import {
-    CameraControls,
-    Edges,
-    KeyboardControls,
-    KeyboardControlsEntry,
-    OrbitControls,
-    useKeyboardControls,
-} from "@react-three/drei";
-import { useMemo, useRef } from "react";
-import Test from "./test";
 import Viewer from "./Viewer";
+import ChallengesPage from "./Challenges/ChallengesPage";
+import AboutPage from "./About/AboutPage";
+import ResourcesPage from "./Resources/ResourcesPage";
+import { Toaster } from "./components/ui/toaster";
+import Freeview from "./Freeview/Freeview";
 
 function App() {
     return (
-        <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-            <div className="h-full flex flex-col">
-                <Navbar />
-                <Separator />
-                {/* <div className="flex flex-col items-center">
-                    <h1 className="text-2xl font-bold text-center">Lessons</h1>
-                    <Card className="w-80">
-                        <CardHeader>
-                            <CardTitle>Get started with first lesson</CardTitle>
-                            <CardDescription>some stuff</CardDescription>
-                            <CardContent>this is a box</CardContent>
-                            <CardFooter>
-                                <Button>hello</Button>
-                            </CardFooter>
-                        </CardHeader>
-                    </Card>
-                </div> */}
-                <Viewer />
-            </div>
-        </ThemeProvider>
+        <BrowserRouter>
+            <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+                <div className="h-full flex flex-col relative">
+                    <Navbar />
+                    <Separator />
+                    <Routes>
+                        <Route path="/" element={<LandingPage />} />
+                        <Route
+                            path="/challenges"
+                            element={<ChallengesPage />}
+                        />
+                        <Route
+                            path="/viewer/:shape/:camPos/:rotation_axis/"
+                            element={<Viewer />}
+                        />
+                        <Route path="/freeview" element={<Freeview />} />
+                        <Route path="/about" element={<AboutPage />} />
+                        <Route path="/resources" element={<ResourcesPage />} />
+                        {/* TODO : page not found maybe */}
+                        <Route path="*" element={<Navigate to="/" />} />
+                    </Routes>
+                </div>
+                <Toaster />
+            </ThemeProvider>
+        </BrowserRouter>
     );
 }
 

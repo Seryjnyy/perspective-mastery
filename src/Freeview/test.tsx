@@ -29,7 +29,7 @@ import {
     Vector3,
 } from "three";
 import { Object3DNode } from "three/examples/jsm/nodes/Nodes.js";
-import { useViewer } from "./ViewerContext";
+import { useViewer } from "./FreeviewContext";
 
 enum Controls {
     forward = "forward",
@@ -45,7 +45,7 @@ interface WireBoxProps {
 const WireBox = forwardRef<Mesh, WireBoxProps>((props, ref) => {
     return (
         <mesh ref={ref} visible={props.visible}>
-            <boxGeometry args={[1, 1, 1]} />
+            <cylinderGeometry args={[1, 1, 1]} />
             <meshBasicMaterial
                 transparent={true}
                 color="#333"
@@ -234,8 +234,6 @@ export default function Test() {
         <>
             <OrbitControls makeDefault ref={orbitControlRef} />
             {/* <CameraControls ref={camRef} /> */}
-            <ambientLight intensity={0.5} />
-            <spotLight position={[10, 15, 10]} angle={0.3} />
 
             {/* <PivotControls
                 rotation={[0, -Math.PI / 2, 0]}
@@ -270,7 +268,7 @@ export default function Test() {
 
             <WireBox ref={boxRef} visible={false} />
 
-            <GizmoHelper alignment="bottom-right" margin={[100, 100]}>
+            <GizmoHelper alignment="bottom-right" margin={[70, 70]}>
                 <GizmoViewport labelColor="white" axisHeadScale={1} />
             </GizmoHelper>
         </>

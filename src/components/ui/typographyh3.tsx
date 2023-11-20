@@ -1,7 +1,7 @@
 // TODO : should define type
 
 type TypographyProps = {
-    variant: "h1" | "h2" | "h3" | "h4" | "p";
+    variant: "h1" | "h2" | "h3" | "h4" | "p" | "muted";
     children: React.ReactNode;
 };
 export function Typography({ variant, children }: TypographyProps) {
@@ -41,5 +41,9 @@ export function Typography({ variant, children }: TypographyProps) {
         return (
             <p className="leading-7 [&:not(:first-child)]:mt-6">{children}</p>
         );
+    }
+
+    if (variant == "muted") {
+        return <p className="text-sm text-muted-foreground">{children}</p>;
     }
 }

@@ -1,17 +1,28 @@
 import React, { useState } from "react";
-import Three from "./Three";
-import ViewerUI from "./ViewerUI";
-import ViewerContext from "./ViewerContext";
+import Three from "./Freeview/FreeviewContent";
+import ViewerUI from "./Freeview/FreeviewUI/FreeviewUI";
+import ViewerContext from "./Freeview/FreeviewContext";
+import ViewerForced from "./Viewer/ViewerForced";
+import ViewerForcedUI from "./Viewer/ViewerForcedUI";
+import ViewerForcedContext from "./Viewer/ViewerForcedContext";
 
 export default function Viewer() {
-    const [viewGismos, setViewGismos] = useState(true);
+    // TODO : should take parameter values here then pass to individual components i think
+    // currently components are accessing it individually
 
     return (
-        <div>
+        <div className="w-full h-screen relative">
             <ViewerContext>
                 <ViewerUI />
-                <Three viewGismos={viewGismos} />
+                <Three viewGismos={false} />
             </ViewerContext>
+            {/* <ViewerForcedContext>
+                <ViewerForcedUI />
+                <ViewerForced />
+            </ViewerForcedContext> */}
         </div>
+        // <div className="w-full h-scree">
+        //     <ViewerForced />
+        // </div>
     );
 }
