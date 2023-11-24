@@ -1,154 +1,189 @@
-import React, { useState } from "react";
-import { Button } from "../../components/ui/button";
-import { useFreeviewContext, useViewer } from "../FreeviewContext";
+import { Card } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import {
-    Sheet,
-    SheetContent,
-    SheetDescription,
-    SheetHeader,
-    SheetTitle,
-    SheetTrigger,
-} from "../../components/ui/sheet";
-import { Toggle } from "../../components/ui/toggle";
-import { Typography } from "../../components/ui/typographyh3";
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { GearIcon } from "@radix-ui/react-icons";
-import { Checkbox } from "../../components/ui/checkbox";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useState } from "react";
+import { Button } from "../../components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "../../components/ui/sheet";
+import { Typography } from "../../components/ui/typography";
+import { useFreeviewContext } from "../FreeviewContext";
+import CameraTarget from "./CameraTarget";
 import ChangeShape from "./ChangeShape";
+import Edges from "./Edges";
+import Fisheye from "./Fisheye";
+import Gizmos from "./Gizmos";
+import Lighting from "./Lighting";
+import RotationAxis from "./RotationAxis";
+import RotationStep from "./RotationStep";
+import ShapeControls from "./ShapeControls";
+import SolidColour from "./SolidColour";
 
 export default function FreeviewUI() {
-    const { solidColour, toggleSolidColour } = useFreeviewContext();
-    const [solidColourUI, setSolidColourUI] = useState(solidColour.current);
-    // const { viewGismos, rotateAxis, rotateDegree, rotateForward } = useViewer();
-    // const [something, setSomething] = useState(viewGismos.current);
+    const [rotationAxis, setRotationAxis] = useState<"x" | "y" | "z">("y");
+    const [rotationDegree, setRotationDegree] = useState(15);
+    const { rotate } = useFreeviewContext();
 
-    // const [rotationAxis, setRotationAxis] = useState(rotateAxis.current);
-    // const [rotationDegree, setRotationDegree] = useState(rotateDegree.current);
+    const handleRotateBackward = () => {
+        rotate(rotationAxis, -rotationDegree);
+    };
 
-    // const handlePress = (axis: string, pressed: boolean) => {
-    //     if (!pressed) {
-    //         rotateAxis.current = "";
-    //         setRotationAxis(rotateAxis.current);
-    //         return;
-    //     }
-
-    //     rotateAxis.current = axis;
-    //     setRotationAxis(rotateAxis.current);
-    // };
-
-    // const handleRotateDegreePress = (degree: number, pressed: boolean) => {
-    //     if (!pressed) {
-    //         return;
-    //     }
-
-    //     rotateDegree.current = degree;
-    //     setRotationDegree(rotateDegree.current);
-    // };
-    const handleSolidColourChange = (checked: boolean) => {
-        console.log(checked);
-
-        toggleSolidColour(checked);
-        setSolidColourUI(solidColour.current);
+    const handleRotateForward = () => {
+        rotate(rotationAxis, rotationDegree);
     };
 
     return (
         <>
-            {/* <div className="w-8 h-8 bg-red-600 absolute flex">
-                <Button
-                    onClick={() => {
-                        console.log("hello");
-                        viewGismos.current = !viewGismos.current;
-                        setSomething(viewGismos.current);
-                    }}
-                >
-                    {something ? "one state" : "other state"}
-                </Button>
-                {
-                    <Button
-                        disabled={rotateAxis.current == ""}
-                        onClick={() => {
-                            rotateForward();
-                        }}
-                    >
-                        Rotate Forward
-                    </Button>
-                }
-            </div> */}
-
             <Sheet>
-                <SheetTrigger className="absolute left-3 bottom-3  z-20">
-                    <GearIcon className="w-6 h-6" />
+                <SheetTrigger className="absolute left-52 bottom-5  z-20">
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <GearIcon className="w-6 h-6" />
+                            </TooltipTrigger>
+                            <TooltipContent align="center" side="right">
+                                <p>Settings</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
                 </SheetTrigger>
-                <SheetContent>
-                    <SheetHeader>
-                        <SheetTitle>Settings</SheetTitle>
-                        <SheetDescription>change stuff idk</SheetDescription>
-                        {/* <div>
-                            <Typography variant="h4">Rotation</Typography>
-                            <Toggle
-                                pressed={rotationAxis == "x"}
-                                onPressedChange={(pressed) =>
-                                    handlePress("x", pressed)
-                                }
-                            >
-                                X
-                            </Toggle>
-                            <Toggle
-                                pressed={rotationAxis == "y"}
-                                onPressedChange={(pressed) =>
-                                    handlePress("y", pressed)
-                                }
-                            >
-                                Y
-                            </Toggle>
-                            <Toggle
-                                pressed={rotationAxis == "z"}
-                                onPressedChange={(pressed) =>
-                                    handlePress("z", pressed)
-                                }
-                            >
-                                Z
-                            </Toggle>
-                        </div> */}
+                <SheetContent className="p-0">
+                    {/* <SheetHeader><SheetTitle>Settings</SheetTitle></SheetHeader> */}
+                    <ScrollArea className="h-screen border px-4">
+                        <div className="mb-10 mt-10">
+                            <div className="mb-10">
+                                <Typography variant={"h2"} as="h2">
+                                    Shape
+                                </Typography>
+                                <div className="mt-4 flex flex-col gap-1">
+                                    <ChangeShape />
+                                    <Edges />
+                                    <SolidColour />
+                                </div>
+                            </div>
 
-                        {/* <div>
-                            <Typography variant="h4">Step</Typography>
-                            {[15, 30, 45, 60, 75, 90].map((degree) => (
-                                <Toggle
-                                    key={degree}
-                                    pressed={rotationDegree == degree}
-                                    onPressedChange={(pressed) =>
-                                        handleRotateDegreePress(degree, pressed)
-                                    }
-                                >
-                                    {degree}
-                                </Toggle>
-                            ))}
-                        </div> */}
-
-                        <ChangeShape />
-
-                        <div>
-                            <Typography variant="h4">
-                                <span className="mr-2">Solid colour</span>
-                                <Checkbox
-                                    checked={solidColourUI}
-                                    onCheckedChange={(checked) =>
-                                        handleSolidColourChange(checked)
-                                    }
-                                />
+                            <Typography variant={"h2"} as="h2">
+                                Rotation
                             </Typography>
-                            {/* on/off <Checkbox /> */}
+                            <div className="mt-4 flex flex-col gap-1">
+                                <RotationAxis
+                                    rotationAxis={rotationAxis}
+                                    onRotationAxisChange={setRotationAxis}
+                                />
+                                <RotationStep
+                                    rotationDegree={rotationDegree}
+                                    onRotationDegreeChange={setRotationDegree}
+                                />
+                            </div>
                         </div>
 
-                        {/* <div>
-                            <Typography variant="h4">
-                                Gismo helper <Checkbox />
+                        <div className="mb-10">
+                            <Typography variant={"h2"} as="h2">
+                                Shape controls
                             </Typography>
-                            on/off <Checkbox />
-                        </div> */}
-                    </SheetHeader>
+                            <div className="mt-4 flex flex-col gap-1">
+                                <ShapeControls />
+                            </div>
+                        </div>
+
+                        <div className="mb-10">
+                            <Typography variant={"h2"} as="h2">
+                                Camera
+                            </Typography>
+
+                            <div className="mt-4 flex flex-col gap-1">
+                                <CameraTarget />
+                                <div>
+                                    <Fisheye />
+                                    <Typography
+                                        variant={"mutedText"}
+                                        className="text-yellow-400 ml-3"
+                                    >
+                                        warning: this will reset the position,
+                                        rotation and scale of the shape.
+                                    </Typography>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mb-10">
+                            <Typography variant={"h2"} as="h2">
+                                Lighting
+                            </Typography>
+                            <div className="mt-4 flex flex-col gap-1">
+                                <Lighting />
+                            </div>
+                        </div>
+
+                        <div className="mb-10">
+                            <Typography variant={"h2"} as="h2">
+                                Gizmos
+                            </Typography>
+                            <div className="mt-4 flex flex-col gap-1">
+                                <Gizmos />
+                            </div>
+                        </div>
+                    </ScrollArea>
                 </SheetContent>
             </Sheet>
+
+            <div className="absolute bottom-2 left-2 z-50">
+                <Card className="h-fit w-48">
+                    <div className="flex justify-center gap-4 p-2">
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={() => {
+                                            handleRotateBackward();
+                                        }}
+                                        // disabled={getAxisDegree()! <= 0}
+                                    >
+                                        <ChevronLeft className="w-4 h-4" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Previous frame</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                        {rotationAxis}
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={() => {
+                                            handleRotateForward();
+                                        }}
+                                        // disabled={getAxisDegree()! >= 6.2831853072}
+                                    >
+                                        <ChevronRight className="w-4 h-4" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Next frame</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </div>
+
+                    {/* <div className="p-2">
+                    <Progress
+                        value={(0 + getAxisDegree()! / 6.2831853072) * 100}
+                    />
+                </div> */}
+                </Card>
+            </div>
         </>
     );
 }

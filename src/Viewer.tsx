@@ -12,14 +12,14 @@ export default function Viewer() {
 
     return (
         <div className="w-full h-screen relative">
-            <ViewerContext>
+            {/* <ViewerContext>
                 <ViewerUI />
                 <Three viewGismos={false} />
-            </ViewerContext>
-            {/* <ViewerForcedContext>
+            </ViewerContext> */}
+            <ViewerForcedContext>
                 <ViewerForcedUI />
                 <ViewerForced />
-            </ViewerForcedContext> */}
+            </ViewerForcedContext>
         </div>
         // <div className="w-full h-scree">
         //     <ViewerForced />

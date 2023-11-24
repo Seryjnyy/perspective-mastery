@@ -1,13 +1,18 @@
 import {
     Edges,
     Fisheye,
+    GizmoHelper,
+    GizmoViewport,
     KeyboardControls,
     KeyboardControlsEntry,
     OrbitControls,
+    PivotControls,
+    TransformControls,
     useKeyboardControls,
 } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
 import {
+    ReactElement,
     ReactNode,
     forwardRef,
     useEffect,
@@ -16,8 +21,8 @@ import {
     useState,
 } from "react";
 import Test from "./test";
-import { BoxGeometry, CapsuleGeometry, Mesh } from "three";
-import { useFreeviewContext } from "./FreeviewContext";
+import { BoxGeometry, CapsuleGeometry, Mesh, Vector3 } from "three";
+import { ShapeControlsType, useFreeviewContext } from "./FreeviewContext";
 
 enum Controls {
     forward = "forward",
@@ -27,27 +32,21 @@ enum Controls {
     jump = "jump",
 }
 
-interface WireBoxProps {
-    visible: boolean;
-    solidColour: boolean;
-}
-
-interface WireCylinderProps {
-    solidColour: boolean;
-    visible: boolean;
-}
-
 interface WireShapeProps {
     visible: boolean;
     solidColour: boolean;
+    edges: boolean;
+    rotation: { x: number; y: number; z: number };
     geometry: ReactNode;
 }
 
 const WireShape = forwardRef<Mesh, WireShapeProps>((props, ref) => {
-    // const [solidColour, setSolidColour] = useState(props.solidColour);
-
     return (
-        <mesh ref={ref} visible={props.visible}>
+        <mesh
+            ref={ref}
+            visible={props.visible}
+            rotation={[props.rotation.x, props.rotation.y, props.rotation.z]}
+        >
             {props.geometry}
             {/* <meshBasicMaterial
                 transparent={false}
@@ -62,7 +61,7 @@ const WireShape = forwardRef<Mesh, WireShapeProps>((props, ref) => {
                 transparent={props.solidColour ? false : true}
             />
             <Edges
-                scale={1}
+                scale={props.edges ? 1 : 0}
                 threshold={10} // Display edges only when the angle between two faces exceeds this value (default=15 degrees)
                 color="white"
             />
@@ -70,51 +69,58 @@ const WireShape = forwardRef<Mesh, WireShapeProps>((props, ref) => {
     );
 });
 
-const WireBox = forwardRef<Mesh, WireBoxProps>((props, ref) => {
+const ShapeWithControls = ({
+    shapeControls,
+    shape,
+}: {
+    shapeControls: ShapeControlsType;
+    shape: ReactElement;
+}) => {
     return (
-        <WireShape
-            ref={ref}
-            solidColour={props.solidColour}
-            visible={props.visible}
-            geometry={<boxGeometry args={[1, 1, 1]} />}
-        />
+        <>
+            <TransformControls
+                mode={
+                    shapeControls == "none" || shapeControls == "pivot"
+                        ? "translate"
+                        : shapeControls
+                }
+                scale={1}
+                size={
+                    shapeControls == "rotate" ||
+                    shapeControls == "translate" ||
+                    shapeControls == "scale"
+                        ? 1
+                        : 0
+                }
+            >
+                <PivotControls
+                    rotation={[0, -Math.PI / 2, 0]}
+                    anchor={[1, -1, -1]}
+                    scale={shapeControls == "pivot" ? 100 : 1}
+                    depthTest={false}
+                    fixed
+                    lineWidth={shapeControls == "pivot" ? 4 : 0}
+                >
+                    {shape}
+                </PivotControls>
+            </TransformControls>
+        </>
     );
-});
-
-const WireCylinder = forwardRef<Mesh, WireCylinderProps>((props, ref) => {
-    return (
-        <WireShape
-            ref={ref}
-            visible={props.visible}
-            solidColour={props.solidColour}
-            geometry={<cylinderGeometry args={[1, 1, 1]} />}
-        />
-    );
-});
-
-// const WireCone = forwardRef<Mesh, WireCylinderProps>((props, ref) => {
-//     return (
-//         <WireShape
-//             ref={ref}
-//             visible={props.visible}
-//             geometry={<coneGeometry args={[4, 5, 8]} />}
-//         />
-//     );
-// });
-
-// const TEST = forwardRef<Mesh, WireCylinderProps>((props, ref) => {
-//     return (
-//         <WireShape
-//             ref={ref}
-//             visible={props.visible}
-//             geometry={<ringGeometry args={[1, 2, 32]} />}
-//         />
-//     );
-// });
+};
 
 const Content = () => {
-    const { subscribeToEvents, unsubscribeFromEvents, shape, solidColour } =
-        useFreeviewContext();
+    const {
+        subscribeToEvents,
+        unsubscribeFromEvents,
+        shape,
+        solidColour,
+        edges,
+        fisheye,
+        shapeControls,
+        xDegree,
+        yDegree,
+        zDegree,
+    } = useFreeviewContext();
     const boxRef = useRef<Mesh>(null);
     const cylinderRef = useRef<Mesh>(null);
     const refs = [boxRef, cylinderRef];
@@ -122,83 +128,223 @@ const Content = () => {
     const [solidColourEnabled, setSolidColourEnabled] = useState(
         solidColour.current
     );
-    const [edges, setEdges] = useState(false);
+
+    const [edgesEnabled, setEdgesEnabled] = useState(edges.current);
+
+    const [fisheyeEnabled, setFisheyeEnabled] = useState(fisheye.current);
+
+    const [shapeControlsEnabled, setShapeControlsEnabled] = useState(
+        shapeControls.current
+    );
+
+    const [currentShape, setCurrentShape] = useState(shape.current);
 
     useEffect(() => {
         const id = subscribeToEvents((eventType: string) => {
-            if (eventType == "shape_change") {
-                // hide all refs first
-                refs.forEach((ref) => {
-                    if (ref.current) ref.current.visible = false;
-                });
+            // if (eventType == "shape_change") {
+            //     // hide all refs first
+            //     refs.forEach((ref) => {
+            //         if (ref.current) ref.current.visible = false;
+            //     });
 
-                // then show the chosen one
-                switch (shape.current) {
-                    case "box":
-                        if (boxRef.current) boxRef.current.visible = true;
-                        break;
-                    case "cylinder":
-                        if (cylinderRef.current)
-                            cylinderRef.current.visible = true;
-                        break;
-                }
+            //     // then show the chosen one
+            //     switch (shape.current) {
+            //         case "box":
+            //             if (boxRef.current) boxRef.current.visible = true;
+            //             break;
+            //         case "cylinder":
+            //             if (cylinderRef.current)
+            //                 cylinderRef.current.visible = true;
+            //             break;
+            //     }
+            // }
+
+            if (eventType == "shape_change") {
+                setCurrentShape(shape.current);
             }
 
             if (eventType == "solidColour_change") {
                 setSolidColourEnabled(solidColour.current);
+            }
+
+            if (eventType == "edges_change") {
+                setEdgesEnabled(edges.current);
+            }
+
+            if (eventType == "fisheye_change") {
+                setFisheyeEnabled(fisheye.current);
+            }
+
+            if (eventType == "shapeControls_change") {
+                console.log(boxRef.current?.position);
+                setShapeControlsEnabled(shapeControls.current);
+            }
+
+            if (eventType == "objectRotation_change") {
+                refs.forEach((ref) =>
+                    ref.current?.rotation.set(
+                        xDegree.current,
+                        yDegree.current,
+                        zDegree.current
+                    )
+                );
+            }
+        });
+
+        return () => unsubscribeFromEvents(id);
+    }, []);
+    // TODO : MAKE LIGHT, SHAPES, AND GIZMO into separate components that are actually located in the parent
+    // instead of being in the same component, so don't have to worry about their state, and state changes affecting them
+
+    // TODO : i don't think we need to render all shapes at the same time anymore
+
+    let geometry = <></>;
+
+    if (currentShape == "box") {
+        geometry = <boxGeometry args={[2, 2, 2]} />;
+    } else if (currentShape == "cylinder") {
+        geometry = <cylinderGeometry args={[2, 2, 2]} />;
+    } else if (currentShape == "cone") {
+        geometry = <coneGeometry args={[4, 5, 8]} />;
+    } else if (currentShape == "ring") {
+        geometry = <ringGeometry args={[1, 2, 32]} />;
+    } else if (currentShape == "capsule") {
+        geometry = <capsuleGeometry args={[1, 1, 4, 8]} />;
+    } else if (currentShape == "circle") {
+        geometry = <circleGeometry args={[1, 32]} />;
+    } else if (currentShape == "torus") {
+        geometry = <torusGeometry args={[1, 0.25, 32, 100]} />;
+    } else if (currentShape == "torusKnot") {
+        geometry = <torusKnotGeometry args={[5, 1.5, 50, 8]} />;
+    }
+
+    console.log(currentShape);
+
+    const content = (
+        <>
+            <ShapeWithControls
+                shapeControls={shapeControlsEnabled}
+                shape={
+                    <WireShape
+                        rotation={{
+                            x: xDegree.current,
+                            y: yDegree.current,
+                            z: zDegree.current,
+                        }}
+                        visible={true}
+                        ref={boxRef}
+                        solidColour={solidColourEnabled}
+                        edges={edgesEnabled}
+                        geometry={geometry}
+                    />
+                }
+            />
+        </>
+    );
+
+    if (fisheyeEnabled) {
+        return (
+            <>
+                <Fisheye zoom={1}>{content}</Fisheye>
+            </>
+        );
+    }
+
+    return <>{content}</>;
+};
+
+const Lighting = () => {
+    const { subscribeToEvents, unsubscribeFromEvents, lighting } =
+        useFreeviewContext();
+    const [lightingEnabled, setLightingEnabled] = useState(lighting.current);
+
+    useEffect(() => {
+        const id = subscribeToEvents((eventType) => {
+            if (eventType == "lighting_change") {
+                setLightingEnabled(lighting.current);
             }
         });
 
         return () => unsubscribeFromEvents(id);
     }, []);
 
-    const backPressed = useKeyboardControls<Controls>((state) => state.back);
-    useFrame(({}) => {
-        if (backPressed) {
-            if (boxRef.current) {
-                boxRef.current.rotation.set(
-                    boxRef.current.rotation.x + 0.01,
-                    boxRef.current.rotation.y,
-                    boxRef.current.rotation.z
-                );
+    if (lightingEnabled == "none") {
+        return <></>;
+    }
+
+    if (lightingEnabled == "ambient") {
+        return <ambientLight />;
+    }
+
+    if (lightingEnabled == "point") {
+        return (
+            <pointLight intensity={3} color={0xffffff} position={[2, 2, 2]} />
+        );
+    }
+
+    if (lightingEnabled == "directional") {
+        return (
+            <directionalLight
+                intensity={0.4}
+                color={0xffffff}
+                position={[2, 2, 2]}
+            />
+        );
+    }
+};
+
+const CameraTarget = () => {
+    const { subscribeToEvents, unsubscribeFromEvents, cameraTarget } =
+        useFreeviewContext();
+    const [cameraTargetEnabled, setCameraTargetEnabled] = useState(
+        cameraTarget.current
+    );
+
+    useEffect(() => {
+        const id = subscribeToEvents((eventType) => {
+            if (eventType == "cameraTarget_change") {
+                setCameraTargetEnabled(cameraTarget.current);
             }
-        }
-    });
+        });
+
+        return () => unsubscribeFromEvents(id);
+    }, []);
+
+    if (!cameraTargetEnabled) {
+        return <></>;
+    }
 
     return (
-        <>
-            {/* <WireShape
-                visible={true}
-                geometry={<torusGeometry args={[1, 0.25, 32, 100]} />}
-            /> */}
-            {/* <WireShape
-                visible={true}
-                geometry={<capsuleGeometry args={[1, 1, 4, 8]} />}
-            /> */}
-            {/* <WireShape
-                visible={true}
-                geometry={<circleGeometry args={[1, 32]} />}
-            /> */}
+        <mesh>
+            <boxGeometry args={[0.05, 0.05, 0.05]} />
+            <meshBasicMaterial attach={"material"} color={"#ffffff"} />
+        </mesh>
+    );
+};
 
-            {/* better without wireframe */}
-            {/* <WireShape
-                visible={true}
-                solidColour={solidColour}
-                ref={boxRef}
-                geometry={<torusKnotGeometry args={[5, 1.5, 50, 8]} />}
-            /> */}
+const Gizmo = () => {
+    const { subscribeToEvents, unsubscribeFromEvents, gizmo } =
+        useFreeviewContext();
+    const [gizmoEnabled, setGizmoEnabled] = useState(gizmo.current);
 
-            <WireBox
-                visible={shape.current == "box"}
-                ref={boxRef}
-                solidColour={solidColourEnabled}
-            />
-            <WireCylinder
-                visible={shape.current == "cylinder"}
-                ref={cylinderRef}
-                solidColour={solidColourEnabled}
-            />
-        </>
+    useEffect(() => {
+        const id = subscribeToEvents((eventType) => {
+            if (eventType == "gizmo_change") {
+                setGizmoEnabled(gizmo.current);
+            }
+        });
+
+        return () => unsubscribeFromEvents(id);
+    }, []);
+
+    if (!gizmoEnabled) {
+        return <></>;
+    }
+
+    return (
+        <GizmoHelper alignment="bottom-right" margin={[50, 50]}>
+            <GizmoViewport labelColor="white" axisHeadScale={1} scale={30} />
+        </GizmoHelper>
     );
 };
 
@@ -213,21 +359,16 @@ export default function FreeviewContent() {
         ],
         []
     );
+
     return (
         <div className="bg-gray-950 h-screen">
             <KeyboardControls map={map}>
                 <Canvas>
-                    {/* <ambientLight /> */}
-                    <pointLight
-                        intensity={4}
-                        color={0xffffff}
-                        position={[2, 2, 2]}
-                    />
-                    <OrbitControls />
-
-                    {/* <Fisheye zoom={1}> */}
+                    <OrbitControls makeDefault />
+                    <Lighting />
                     <Content />
-                    {/* </Fisheye> */}
+                    <CameraTarget />
+                    <Gizmo />
                 </Canvas>
             </KeyboardControls>
         </div>

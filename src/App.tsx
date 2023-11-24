@@ -9,6 +9,8 @@ import AboutPage from "./About/AboutPage";
 import ResourcesPage from "./Resources/ResourcesPage";
 import { Toaster } from "./components/ui/toaster";
 import Freeview from "./Freeview/Freeview";
+import AnimatedView from "./AnimatedTemp/AnimatedView";
+import AnimatedPage from "./AnimatedTemp/AnimatedPage";
 
 function App() {
     return (
@@ -23,11 +25,17 @@ function App() {
                             path="/challenges"
                             element={<ChallengesPage />}
                         />
-                        <Route
+                        {/* <Route
                             path="/viewer/:shape/:camPos/:rotation_axis/"
                             element={<Viewer />}
+                        /> */}
+
+                        <Route
+                            path="/viewer/:shape/:camPos/:animation_type/:variant/"
+                            element={<AnimatedPage />}
                         />
                         <Route path="/freeview" element={<Freeview />} />
+                        <Route path="/animated" element={<AnimatedPage />} />
                         <Route path="/about" element={<AboutPage />} />
                         <Route path="/resources" element={<ResourcesPage />} />
                         {/* TODO : page not found maybe */}

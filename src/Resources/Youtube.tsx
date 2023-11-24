@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import moderndayjamesProfile from "../assets/youtubers/moderndayjames.jpg";
+import grayTemp from "../assets/grayTemp.jpg";
 
 type YoutubeCardProps = {
     title: string;
@@ -20,12 +21,13 @@ const YoutubeCard = ({
     content,
 }: YoutubeCardProps) => {
     return (
-        <Card className="w-80 md:w-[20rem] h-full">
+        <Card className="w-[24rem]">
             <CardHeader>
                 <CardTitle className="flex justify-between">
                     <div className="flex items-center gap-4">
                         <img
                             src={profileSrc}
+                            onError={(e) => (e.currentTarget.src = grayTemp)}
                             onClick={() => window.open(youtubeLink, "_blank")}
                             className="w-8 h-8 rounded-lg cursor-pointer"
                         />
@@ -96,14 +98,14 @@ const youtubers: YoutubeCardProps[] = [
             <div>
                 {" "}
                 good video showing how to draw using boxes
-                <p>https://www.youtube.com/watch?v=j9Z3mK6NSUU</p>2 videos about
+                {/* <p>https://www.youtube.com/watch?v=j9Z3mK6NSUU</p>2 videos about
                 rotating boxes
                 <p>
                     https://www.youtube.com/watch?v=ja4W5P7K5PE&list=PL7xvYrkzD7N9UUEn_o15wrXZ1Z6lM9t0S
                 </p>
                 <p>
                     https://www.youtube.com/watch?v=ja4W5P7K5PE&list=PL7xvYrkzD7N9UUEn_o15wrXZ1Z6lM9t0S&index=9
-                </p>
+                </p> */}
             </div>
         ),
     },
@@ -111,18 +113,17 @@ const youtubers: YoutubeCardProps[] = [
 
 export default function Youtube() {
     return (
-        <div className="flex gap-4 flex-wrap">
-            {youtubers.map((user) => (
-                <div>
-                    <YoutubeCard
-                        title={user.title}
-                        recommend={user.recommend}
-                        profileSrc={user.profileSrc}
-                        youtubeLink={user.youtubeLink}
-                        atHandle={user.atHandle}
-                        content={user.content}
-                    />
-                </div>
+        <div className="flex p-0 gap-4 mt-8 flex-wrap justify-center md:justify-start ">
+            {youtubers.map((user, index) => (
+                <YoutubeCard
+                    key={index}
+                    title={user.title}
+                    recommend={user.recommend}
+                    profileSrc={user.profileSrc}
+                    youtubeLink={user.youtubeLink}
+                    atHandle={user.atHandle}
+                    content={user.content}
+                />
             ))}
         </div>
     );

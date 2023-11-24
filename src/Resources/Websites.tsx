@@ -12,7 +12,7 @@ const websites = [
 
 const WebsiteCard = () => {
     return (
-        <Card className="w-80 md:w-[20rem] h-full">
+        <Card className="w-[24rem]">
             <CardHeader>
                 <CardTitle className="flex justify-between">
                     <div className="flex items-center gap-4">
@@ -45,9 +45,9 @@ const WebsiteCard = () => {
 
 export default function Websites() {
     return (
-        <div>
-            {websites.map((website) => (
-                <WebsiteCard />
+        <div className="flex p-0 gap-4 mt-8 flex-wrap justify-center md:justify-start ">
+            {websites.map((website, index) => (
+                <WebsiteCard key={index} />
             ))}
         </div>
     );

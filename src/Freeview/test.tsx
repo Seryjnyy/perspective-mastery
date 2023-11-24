@@ -7,6 +7,7 @@ import {
     OrbitControls,
     PivotControls,
     Stars,
+    TransformControls,
     useGizmoContext,
     useKeyboardControls,
 } from "@react-three/drei";
@@ -115,29 +116,29 @@ export default function Test() {
         }
     };
 
-    const {
-        viewGismos,
-        rotateAxis,
-        rotateDegree,
-        subscribeToRotation,
-        unsubscribeFromRotation,
-    } = useViewer();
+    // const {
+    //     viewGismos,
+    //     rotateAxis,
+    //     rotateDegree,
+    //     subscribeToRotation,
+    //     unsubscribeFromRotation,
+    // } = useViewer();
 
-    useEffect(() => {
-        const subscription = subscribeToRotation(() => {
-            if (boxRef == null) return;
+    // useEffect(() => {
+    //     const subscription = subscribeToRotation(() => {
+    //         if (boxRef == null) return;
 
-            if (rotateAxis.current == "x") {
-                rotateX(boxRef.current);
-            } else if (rotateAxis.current == "y") {
-                rotateY(boxRef.current);
-            } else if (rotateAxis.current == "z") {
-                rotateZ(boxRef.current);
-            }
-        });
+    //         if (rotateAxis.current == "x") {
+    //             rotateX(boxRef.current);
+    //         } else if (rotateAxis.current == "y") {
+    //             rotateY(boxRef.current);
+    //         } else if (rotateAxis.current == "z") {
+    //             rotateZ(boxRef.current);
+    //         }
+    //     });
 
-        return () => unsubscribeFromRotation(subscription);
-    }, []);
+    //     return () => unsubscribeFromRotation(subscription);
+    // }, []);
 
     const prevViewGismos = useRef<boolean>(true);
 
@@ -154,16 +155,16 @@ export default function Test() {
             camera.position.add(new Vector3(0, 0.2, 0));
         }
 
-        if (viewGismos != prevViewGismos) {
-            if (pivotRef != null && pivotRef.current != null) {
-                if (boxRef != null && boxRef.current != null) {
-                    pivotRef.current.visible = viewGismos.current;
-                    boxRef.current.visible = !viewGismos.current;
+        // if (viewGismos != prevViewGismos) {
+        //     if (pivotRef != null && pivotRef.current != null) {
+        //         if (boxRef != null && boxRef.current != null) {
+        //             pivotRef.current.visible = viewGismos.current;
+        //             boxRef.current.visible = !viewGismos.current;
 
-                    prevViewGismos.current = viewGismos.current;
-                }
-            }
-        }
+        //             prevViewGismos.current = viewGismos.current;
+        //         }
+        //     }
+        // }
 
         // if (forwardPressed) {
         //     if (pivotRef != null) {
@@ -234,6 +235,7 @@ export default function Test() {
         <>
             <OrbitControls makeDefault ref={orbitControlRef} />
             {/* <CameraControls ref={camRef} /> */}
+            {/* <ambientLight intensity={0.5} /> */}
 
             {/* <PivotControls
                 rotation={[0, -Math.PI / 2, 0]}
@@ -254,7 +256,7 @@ export default function Test() {
                 </mesh>
             </PivotControls> */}
 
-            <PivotControls
+            {/* <PivotControls
                 ref={pivotRef}
                 rotation={[0, -Math.PI / 2, 0]}
                 anchor={[1, -1, -1]}
@@ -262,11 +264,18 @@ export default function Test() {
                 depthTest={false}
                 fixed
                 lineWidth={4}
-            >
+            > */}
+            <TransformControls mode="translate">
                 <WireBox visible={true} />
-            </PivotControls>
+            </TransformControls>
+            {/* </PivotControls> */}
 
             <WireBox ref={boxRef} visible={false} />
+
+            <mesh>
+                <boxGeometry args={[1, 1, 1]} />
+                <meshStandardMaterial attach={"material"} />
+            </mesh>
 
             <GizmoHelper alignment="bottom-right" margin={[70, 70]}>
                 <GizmoViewport labelColor="white" axisHeadScale={1} />

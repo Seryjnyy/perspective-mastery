@@ -15,7 +15,14 @@ import {
 import { Typography } from "./components/ui/typographyh3";
 import buymeacoffee from "./assets/buymeacoffee.svg";
 import { useTheme } from "./components/theme-provider";
-import { Moon, Sun } from "lucide-react";
+import { Book, Box, BoxesIcon, Eye, Moon, Sun } from "lucide-react";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "./components/ui/tooltip";
+import { existsSync } from "fs";
 
 export default function Navbar() {
     const location = useLocation();
@@ -35,23 +42,40 @@ export default function Navbar() {
             camPos: string;
             rotation_axis: string;
         };
+        exitIcon: boolean;
     }
-    const SmallMenu = (props: ViewerDesc) => {
-        let viewerDesc = <div></div>;
+    const SmallMenu = ({ viewerDesc, exitIcon }: ViewerDesc) => {
+        let topLeftContent = <></>;
 
-        if (props.viewerDesc) {
-            const connective =
-                props.viewerDesc.camPos == "level" ? "with" : "the";
-            const descString = `Camera ${props.viewerDesc.camPos} ${connective} ${props.viewerDesc.shape}`;
+        if (exitIcon || viewerDesc) {
+            let descString = "";
 
-            viewerDesc = (
+            if (viewerDesc) {
+                const connective =
+                    viewerDesc.camPos == "level" ? "with" : "the";
+                descString = `Camera ${viewerDesc.camPos} ${connective} ${viewerDesc.shape}`;
+            }
+
+            topLeftContent = (
                 <div className="absolute z-20 left-4 top-2 flex items-center">
-                    <Button
-                        variant={"ghost"}
-                        onClick={() => navigate("/challenges")}
-                    >
-                        <ExitIcon />
-                    </Button>
+                    {exitIcon && (
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant={"ghost"}
+                                        onClick={() => navigate("/challenges")}
+                                    >
+                                        <ExitIcon />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent align="center" side="right">
+                                    <p>Exit</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    )}
+
                     <div className="ml-2">
                         <Typography variant="muted">{descString}</Typography>
                     </div>
@@ -59,11 +83,28 @@ export default function Navbar() {
             );
         }
 
+        // buttons for small nav
+        // topLeftContent = (
+        //     <div className="absolute z-20 left-4 top-2 flex items-center">
+        //         <div className="ml-2">
+        //             <Button variant={"outline"}>
+        //                 <Box className="w-5 h-5" />
+        //             </Button>
+        //             <Button variant={"outline"}>
+        //                 <Eye className="w-5 h-5" />
+        //             </Button>
+        //             <Button variant={"outline"}>
+        //                 <Book className="w-5 h-5" />
+        //             </Button>
+        //         </div>
+        //     </div>
+        // );
+
         return (
             <div>
                 {/* TODO : IDK if this should be here, because we need this small menu on other pages too */}
                 {/* TODO : Also Implement this so displays correctly */}
-                {viewerDesc}
+                {topLeftContent}
 
                 <div className="absolute z-20 right-2 top-2 ">
                     <DropdownMenu>
@@ -78,18 +119,13 @@ export default function Navbar() {
                             >
                                 Challenges
                             </DropdownMenuItem>
-                            <DropdownMenuItem
-                                onClick={() => handleNavigate("/")}
-                            >
-                                Home
-                            </DropdownMenuItem>
+                            <DropdownMenuItem>Resources</DropdownMenuItem>
                             <DropdownMenuItem
                                 onClick={() => handleNavigate("/")}
                             >
                                 About
                             </DropdownMenuItem>
                             <DropdownMenuItem>Donate</DropdownMenuItem>
-                            <DropdownMenuItem>Resources</DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuLabel>
                                 <div className="flex justify-start gap-2">
@@ -123,7 +159,7 @@ export default function Navbar() {
     // hopefully this works correctly
     // TODO : very easy to break this if things change
     const pathVars = location.pathname.split("/");
-    if (pathVars[1] == "viewer" || pathVars[1] == "freeview") {
+    if (pathVars[1] == "viewer") {
         return (
             <SmallMenu
                 viewerDesc={{
@@ -131,8 +167,14 @@ export default function Navbar() {
                     camPos: pathVars[3],
                     rotation_axis: pathVars[4],
                 }}
+                exitIcon={true}
             />
         );
+    }
+
+    // TODO : animated is temp
+    if (pathVars[1] == "freeview" || pathVars[1] == "animated") {
+        return <SmallMenu exitIcon={true} />;
     }
 
     return (
@@ -150,22 +192,26 @@ export default function Navbar() {
                         </div>
                     </Button>
                     <Button
-                        variant={"ghost"}
+                        variant={
+                            pathVars[1] == "challenges" ? "outline" : "ghost"
+                        }
                         onClick={() => handleNavigate("/challenges")}
                     >
                         Challenges
                     </Button>
                     <Button
-                        variant={"ghost"}
-                        onClick={() => handleNavigate("/about")}
-                    >
-                        About
-                    </Button>
-                    <Button
-                        variant={"ghost"}
+                        variant={
+                            pathVars[1] == "resources" ? "outline" : "ghost"
+                        }
                         onClick={() => handleNavigate("/resources")}
                     >
                         Resources
+                    </Button>
+                    <Button
+                        variant={pathVars[1] == "about" ? "outline" : "ghost"}
+                        onClick={() => handleNavigate("/about")}
+                    >
+                        About
                     </Button>
                     <Button
                         variant={"ghost"}
@@ -188,9 +234,8 @@ export default function Navbar() {
                 </div>
             </div>
 
-            {/* HACK : because this is for the viewer, it has to go over the canvas.*/}
             <div className="sm:hidden py-6">
-                <SmallMenu />
+                <SmallMenu exitIcon={false} />
             </div>
         </>
     );

@@ -18,13 +18,14 @@ import {
     TabsList,
     TabsTrigger,
 } from "../components/ui/tabs";
-import { Typography } from "../components/ui/typographyh3";
+import { Typography } from "../components/ui/typography";
 import { Separator } from "../components/ui/separator";
 import { getImageSrcFor } from "@/utility/challengeImages";
 import {
     getCompletedChallenges,
     makeChallengeID,
 } from "@/Services/challengeService";
+import { CheckIcon } from "@radix-ui/react-icons";
 
 type ChallengeCardProps = {
     desc: string;
@@ -32,6 +33,7 @@ type ChallengeCardProps = {
     shape: "box" | "cylinder";
     camPos: "below" | "above" | "level";
     axis: "x" | "y" | "z";
+    animationType: "rotate" | "circle";
     completed: boolean;
 };
 const ChallengeCard = ({
@@ -39,21 +41,23 @@ const ChallengeCard = ({
     title,
     shape,
     camPos,
+    animationType,
     axis,
     completed,
 }: ChallengeCardProps) => {
     const navigate = useNavigate();
 
     const handleBegin = () => {
-        navigate(`/viewer/${shape}/${camPos}/${axis}`);
+        navigate(`/viewer/${shape}/${camPos}/${animationType}/${axis}`);
     };
 
     return (
-        <Card className="w-80">
+        <Card className="w-[24rem]">
             <CardHeader>
                 <CardTitle>
-                    <div className="flex justify-between">
-                        <h3>{title}</h3>
+                    <div className="flex justify-between items-center">
+                        <Typography variant="h3">{title}</Typography>
+
                         <Checkbox
                             id="terms"
                             checked={false}
@@ -77,7 +81,7 @@ const ChallengeCard = ({
                 {/* <div className="flex justify-between w-full">
                         <div className="flex items-center space-x-2"></div>
                     </div> */}
-                <Button onClick={handleBegin} className="w-full">
+                <Button onClick={handleBegin} className="w-fit ml-auto">
                     Begin challenge
                 </Button>
             </CardFooter>
@@ -89,6 +93,7 @@ const boxChallenges: {
     shape: "box" | "cylinder";
     camPos: "below" | "level" | "above";
     axis: "x" | "y" | "z";
+    animationType: "rotate" | "circle";
     title: string;
     desc: string;
 }[] = [
@@ -98,6 +103,7 @@ const boxChallenges: {
         axis: "y",
         title: "Above",
         desc: "Camera above the box. Rotate around y axis.",
+        animationType: "rotate",
     },
     {
         shape: "box",
@@ -105,6 +111,7 @@ const boxChallenges: {
         axis: "y",
         title: "Level",
         desc: "Camera level with box. Rotate around y axis.",
+        animationType: "rotate",
     },
     {
         shape: "box",
@@ -112,6 +119,32 @@ const boxChallenges: {
         axis: "y",
         title: "Below",
         desc: "Camera below the box. Rotate around y axis.",
+        animationType: "rotate",
+    },
+
+    {
+        shape: "box",
+        camPos: "above",
+        axis: "y",
+        title: "Above",
+        desc: "Camera above the box. Circle around y axis.",
+        animationType: "circle",
+    },
+    {
+        shape: "box",
+        camPos: "level",
+        axis: "y",
+        title: "Level",
+        desc: "Camera level with box. Circle around y axis.",
+        animationType: "circle",
+    },
+    {
+        shape: "box",
+        camPos: "below",
+        axis: "y",
+        title: "Below",
+        desc: "Camera below the box. Circle around y axis.",
+        animationType: "circle",
     },
 ];
 
@@ -119,6 +152,7 @@ const cylinderChallenges: {
     shape: "cylinder";
     camPos: "below" | "level" | "above";
     axis: "x" | "y" | "z";
+    animationType: "rotate" | "circle";
     title: string;
     desc: string;
 }[] = [
@@ -128,6 +162,7 @@ const cylinderChallenges: {
         axis: "y",
         title: "Above",
         desc: "Camera above the cylinder. Rotate around y axis.",
+        animationType: "rotate",
     },
     {
         shape: "cylinder",
@@ -135,6 +170,7 @@ const cylinderChallenges: {
         axis: "y",
         title: "Level",
         desc: "Camera level with cylinder. Rotate around y axis.",
+        animationType: "rotate",
     },
     {
         shape: "cylinder",
@@ -142,6 +178,7 @@ const cylinderChallenges: {
         axis: "y",
         title: "Below",
         desc: "Camera below the cylinder. Rotate around y axis.",
+        animationType: "rotate",
     },
 ];
 
@@ -149,13 +186,14 @@ export default function ChallengesPage() {
     const [completedChallenges, setCompletedChallenges] = useState<string[]>(
         []
     );
+    const navigate = useNavigate();
 
     useEffect(() => {
         setCompletedChallenges(getCompletedChallenges());
     }, []);
 
     return (
-        <div className="flex flex-col ml-8 mt-8 mr-8">
+        <div className="flex flex-col px-2 md:px-8 mt-8 pb-8">
             <Tabs defaultValue="box">
                 <TabsList>
                     <TabsTrigger value="box">Box</TabsTrigger>
@@ -165,85 +203,105 @@ export default function ChallengesPage() {
                 <TabsContent value="box">
                     <div>
                         <div className="mt-6 mb-4">
-                            <Typography variant="h3">Box Challenges</Typography>
-                            <Typography variant="muted">
-                                0 / 333 complete
+                            <Typography variant="h1" as="h1">
+                                Box Challenges
+                            </Typography>
+                            <Typography
+                                variant="mutedText"
+                                className="mt-3 ml-2 flex items-center"
+                            >
+                                0 / 33
+                                <CheckIcon />
                             </Typography>
                         </div>
                         <Separator />
-                        <div className="flex items-center md:items-start flex-col">
-                            <div className="flex p-2 gap-10 w-fit flex-col md:flex-row mt-2 flex-wra">
-                                {boxChallenges.map((x, index) => (
-                                    <ChallengeCard
-                                        key={index}
-                                        desc={x.desc}
-                                        title={x.title}
-                                        shape={x.shape}
-                                        camPos={x.camPos}
-                                        axis={x.axis}
-                                        completed={completedChallenges.includes(
-                                            makeChallengeID(
-                                                x.shape,
-                                                x.camPos,
-                                                x.axis
-                                            )
-                                        )}
-                                    />
-                                ))}
-                            </div>
+                        {/* <Typography variant={"h3"} as="h3">
+                            Level 1 : rotation
+                        </Typography> */}
+                        <div className="flex p-0 gap-10 mt-8 flex-wrap justify-center md:justify-start">
+                            {boxChallenges.map((x, index) => (
+                                <ChallengeCard
+                                    key={index}
+                                    desc={x.desc}
+                                    title={x.title}
+                                    shape={x.shape}
+                                    camPos={x.camPos}
+                                    axis={x.axis}
+                                    animationType={x.animationType}
+                                    completed={completedChallenges.includes(
+                                        makeChallengeID(
+                                            x.shape,
+                                            x.camPos,
+                                            x.axis
+                                        )
+                                    )}
+                                />
+                            ))}
                         </div>
                     </div>
                 </TabsContent>
+
                 <TabsContent value="cylinder">
                     <div>
                         <div className="mt-6 mb-4">
-                            <Typography variant="h3">
+                            <Typography variant="h1" as="h1">
                                 Cylinder Challenges
                             </Typography>
-                            <Typography variant="muted">
-                                0 / 333 complete
+                            <Typography
+                                variant="mutedText"
+                                className="mt-3 ml-2 flex items-center"
+                            >
+                                0 / 33
+                                <CheckIcon />
                             </Typography>
                         </div>
                         <Separator />
-                        <div className="flex items-center md:items-start flex-col">
-                            <div className="flex p-2 gap-10 w-fit flex-col md:flex-row mt-2 flex-wra">
-                                {cylinderChallenges.map((x, index) => (
-                                    <ChallengeCard
-                                        key={index}
-                                        desc={x.desc}
-                                        title={x.title}
-                                        shape={x.shape}
-                                        camPos={x.camPos}
-                                        axis={x.axis}
-                                        completed={completedChallenges.includes(
-                                            makeChallengeID(
-                                                x.shape,
-                                                x.camPos,
-                                                x.axis
-                                            )
-                                        )}
-                                    />
-                                ))}
-                            </div>
+                        <div className="flex p-0 gap-10 mt-8 flex-wrap justify-center md:justify-start">
+                            {cylinderChallenges.map((x, index) => (
+                                <ChallengeCard
+                                    key={index}
+                                    desc={x.desc}
+                                    title={x.title}
+                                    shape={x.shape}
+                                    camPos={x.camPos}
+                                    axis={x.axis}
+                                    animationType={x.animationType}
+                                    completed={completedChallenges.includes(
+                                        makeChallengeID(
+                                            x.shape,
+                                            x.camPos,
+                                            x.axis
+                                        )
+                                    )}
+                                />
+                            ))}
                         </div>
                     </div>
                 </TabsContent>
+
                 <TabsContent value="freeview">
                     <div>
                         <div className="mt-6 mb-4">
-                            <Typography variant="h3">Freeview</Typography>
-                            <Typography variant="muted">
-                                View as you want{" "}
+                            <Typography variant="h1" as="h1">
+                                Freeview
+                            </Typography>
+                            <Typography
+                                variant="mutedText"
+                                className="mt-3 ml-2"
+                            >
+                                View as you want
                             </Typography>
                         </div>
                         <Separator />
                         <div className="flex items-center md:items-start flex-col">
-                            <div className="flex p-2 gap-10 w-fit flex-col md:flex-row mt-2 flex-wra">
-                                <Card className="w-80">
+                            <div className="flex p-0 gap-10 mt-8 flex-wrap justify-center md:justify-start">
+                                <Card className="w-[24rem] ">
                                     <CardHeader>
-                                        <CardTitle>Free camera</CardTitle>
+                                        <CardTitle>Freeview</CardTitle>
                                         <CardDescription>
-                                            Control the camera freely.
+                                            You get to control the shape, axis
+                                            of rotation, camera angle and much
+                                            more.
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent>
@@ -254,30 +312,9 @@ export default function ChallengesPage() {
 
                                     <CardFooter>
                                         <Button
-                                            // onClick={handleBegin}
-                                            className="w-full"
-                                        >
-                                            Begin
-                                        </Button>
-                                    </CardFooter>
-                                </Card>
-
-                                <Card className="w-80">
-                                    <CardHeader>
-                                        <CardTitle>Controlled camera</CardTitle>
-                                        <CardDescription>
-                                            Control the camera with buttons.
-                                        </CardDescription>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="flex justify-center">
-                                            {/* img */}
-                                        </div>
-                                    </CardContent>
-
-                                    <CardFooter>
-                                        <Button
-                                            // onClick={handleBegin}
+                                            onClick={() =>
+                                                navigate("/freeview")
+                                            }
                                             className="w-full"
                                         >
                                             Begin

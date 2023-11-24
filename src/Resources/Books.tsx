@@ -25,7 +25,7 @@ const BookCard = ({
     desc,
 }: BookCardProps) => {
     return (
-        <Card className="w-fit h-full">
+        <Card className="w-fit">
             <CardHeader>
                 <CardTitle className="flex justify-between">
                     <div>
@@ -81,17 +81,16 @@ const books: BookCardProps[] = [
 
 export default function Books() {
     return (
-        <div className="flex gap-4 flex-wrap">
-            {books.map((book) => (
-                <div>
-                    <BookCard
-                        title={book.title}
-                        author={book.author}
-                        recommend={book.recommend}
-                        imgSrc={book.imgSrc}
-                        desc={book.desc}
-                    />
-                </div>
+        <div className="flex p-0 gap-4 mt-8 flex-wrap justify-center md:justify-start ">
+            {books.map((book, index) => (
+                <BookCard
+                    key={index}
+                    title={book.title}
+                    author={book.author}
+                    recommend={book.recommend}
+                    imgSrc={book.imgSrc}
+                    desc={book.desc}
+                />
             ))}
         </div>
     );

@@ -8,7 +8,7 @@ type ArtistCardProps = {
 };
 const ArtistCard = ({ name, recommend, profileSrc }: ArtistCardProps) => {
     return (
-        <Card className="w-80 md:w-[20rem] h-full">
+        <Card className="w-[24rem]">
             <CardHeader>
                 <CardTitle className="flex justify-between">
                     <div className="flex items-center gap-4">
@@ -48,9 +48,10 @@ const artists = [
 
 export default function Artists() {
     return (
-        <div className="flex gap-4 flex-wrap">
-            {artists.map((artist) => (
+        <div className="flex p-0 gap-4 mt-8 flex-wrap justify-center md:justify-start ">
+            {artists.map((artist, index) => (
                 <ArtistCard
+                    key={index}
                     name={artist.name}
                     recommend={artist.recommend}
                     profileSrc={artist.profileSrc}

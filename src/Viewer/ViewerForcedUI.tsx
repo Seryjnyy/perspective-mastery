@@ -13,6 +13,7 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { ToastAction } from "@/components/ui/toast";
+import { ArrowLeftIcon, ArrowRightIcon } from "@radix-ui/react-icons";
 
 export default function ViewerForcedUI() {
     const [_, setStateForRefresh] = useState({});
@@ -33,7 +34,24 @@ export default function ViewerForcedUI() {
             setStateForRefresh({});
         });
 
-        return () => unsubscribeFromRotation(index);
+        function handleKeyDown(e: KeyboardEvent) {
+            // left key
+            if (e.code == "ArrowLeft") {
+                handleRotateBackward();
+            }
+
+            // right key
+            if (e.code == "ArrowRight") {
+                handleRotateForward();
+            }
+        }
+
+        document.addEventListener("keydown", handleKeyDown);
+
+        return () => {
+            unsubscribeFromRotation(index);
+            document.removeEventListener("keydown", handleKeyDown);
+        };
     }, []);
 
     const { rotation_axis } = useParams();
@@ -62,6 +80,8 @@ export default function ViewerForcedUI() {
     const handleRotateForward = () => {
         rotateForward(rotation_axis);
 
+        // TODO : take away the amount of rotation per frame in context
+        // so it considers the challenge complete on the last click on next frame
         if (getAxisDegree()! >= 6.2831853072) {
             setComplete(true);
             return;
@@ -87,22 +107,6 @@ export default function ViewerForcedUI() {
         }
     }, [complete]);
 
-    // useEffect(() => {
-    //     console.log("rerender");
-    //     toast({
-    //         title: "Completed this challenge! 🎉",
-    //         description: "Well done, on to the next one then.",
-    //         action: (
-    //             <ToastAction
-    //                 altText="challenges"
-    //                 onClick={() => navigate("/challenges")}
-    //             >
-    //                 Challenges
-    //             </ToastAction>
-    //         ),
-    //     });
-    // }, []);
-
     return (
         <div className="absolute bottom-2 left-2 z-50">
             <Card className="h-fit w-48">
@@ -122,7 +126,10 @@ export default function ViewerForcedUI() {
                                 </Button>
                             </TooltipTrigger>
                             <TooltipContent>
-                                <p>Previous frame</p>
+                                <p className="flex items-center gap-1">
+                                    <ArrowLeftIcon className="w-3 h-3" />
+                                    Previous frame
+                                </p>
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>
@@ -142,7 +149,10 @@ export default function ViewerForcedUI() {
                                 </Button>
                             </TooltipTrigger>
                             <TooltipContent>
-                                <p>Next frame</p>
+                                <p className="flex items-center gap-1">
+                                    Next frame
+                                    <ArrowRightIcon className="w-3 h-3" />
+                                </p>
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>
