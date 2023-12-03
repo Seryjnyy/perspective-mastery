@@ -34,7 +34,7 @@ type ChallengeCardProps = {
     camPos: "below" | "above" | "level";
     axis: "x" | "y" | "z";
     animationType: "rotate" | "circle";
-    completed: boolean;
+    // completed: boolean;
 };
 const ChallengeCard = ({
     desc,
@@ -43,7 +43,6 @@ const ChallengeCard = ({
     camPos,
     animationType,
     axis,
-    completed,
 }: ChallengeCardProps) => {
     const navigate = useNavigate();
 
@@ -183,14 +182,15 @@ const cylinderChallenges: {
 ];
 
 export default function ChallengesPage() {
-    const [completedChallenges, setCompletedChallenges] = useState<string[]>(
-        []
-    );
-    const navigate = useNavigate();
+    // TODO : none of this stuff is being used
+    // const [completedChallenges, setCompletedChallenges] = useState<string[]>(
+    //     []
+    // );
 
-    useEffect(() => {
-        setCompletedChallenges(getCompletedChallenges());
-    }, []);
+    // useEffect(() => {
+    //     setCompletedChallenges(getCompletedChallenges());
+    // }, []);
+    const navigate = useNavigate();
 
     return (
         <div className="flex flex-col px-2 md:px-8 mt-8 pb-8">
@@ -228,13 +228,13 @@ export default function ChallengesPage() {
                                     camPos={x.camPos}
                                     axis={x.axis}
                                     animationType={x.animationType}
-                                    completed={completedChallenges.includes(
-                                        makeChallengeID(
-                                            x.shape,
-                                            x.camPos,
-                                            x.axis
-                                        )
-                                    )}
+                                    // completed={completedChallenges.includes(
+                                    //     makeChallengeID(
+                                    //         x.shape,
+                                    //         x.camPos,
+                                    //         x.axis
+                                    //     )
+                                    // )}
                                 />
                             ))}
                         </div>
@@ -266,13 +266,13 @@ export default function ChallengesPage() {
                                     camPos={x.camPos}
                                     axis={x.axis}
                                     animationType={x.animationType}
-                                    completed={completedChallenges.includes(
-                                        makeChallengeID(
-                                            x.shape,
-                                            x.camPos,
-                                            x.axis
-                                        )
-                                    )}
+                                    // completed={completedChallenges.includes(
+                                    //     makeChallengeID(
+                                    //         x.shape,
+                                    //         x.camPos,
+                                    //         x.axis
+                                    //     )
+                                    // )}
                                 />
                             ))}
                         </div>

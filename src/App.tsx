@@ -11,6 +11,7 @@ import { Toaster } from "./components/ui/toaster";
 import Freeview from "./Freeview/Freeview";
 import AnimatedView from "./AnimatedTemp/AnimatedView";
 import AnimatedPage from "./AnimatedTemp/AnimatedPage";
+import Journey from "./Journey";
 
 function App() {
     return (
@@ -21,17 +22,18 @@ function App() {
                     <Separator />
                     <Routes>
                         <Route path="/" element={<LandingPage />} />
-                        <Route
+                        {/* <Route
                             path="/challenges"
                             element={<ChallengesPage />}
-                        />
+                        /> */}
+                        <Route path="/journey" element={<Journey />} />
                         {/* <Route
                             path="/viewer/:shape/:camPos/:rotation_axis/"
                             element={<Viewer />}
                         /> */}
 
                         <Route
-                            path="/viewer/:shape/:camPos/:animation_type/:variant/"
+                            path="/viewer/:shape/:animation_type/:camPos/:variant/"
                             element={<AnimatedPage />}
                         />
                         <Route path="/freeview" element={<Freeview />} />

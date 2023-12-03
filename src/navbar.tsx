@@ -29,7 +29,7 @@ export default function Navbar() {
     const navigate = useNavigate();
 
     const handleNavigate = (
-        destination: "/" | "/challenges" | "/about" | "/resources"
+        destination: "/" | "/journey" | "/about" | "/resources"
     ) => {
         navigate(destination);
     };
@@ -64,7 +64,7 @@ export default function Navbar() {
                                 <TooltipTrigger asChild>
                                     <Button
                                         variant={"ghost"}
-                                        onClick={() => navigate("/challenges")}
+                                        onClick={() => navigate("/journey")}
                                     >
                                         <ExitIcon />
                                     </Button>
@@ -115,9 +115,9 @@ export default function Navbar() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent sideOffset={8}>
                             <DropdownMenuItem
-                                onClick={() => handleNavigate("/challenges")}
+                                onClick={() => handleNavigate("/journey")}
                             >
-                                Challenges
+                                Journey
                             </DropdownMenuItem>
                             <DropdownMenuItem>Resources</DropdownMenuItem>
                             <DropdownMenuItem
@@ -192,12 +192,10 @@ export default function Navbar() {
                         </div>
                     </Button>
                     <Button
-                        variant={
-                            pathVars[1] == "challenges" ? "outline" : "ghost"
-                        }
-                        onClick={() => handleNavigate("/challenges")}
+                        variant={pathVars[1] == "journey" ? "outline" : "ghost"}
+                        onClick={() => handleNavigate("/journey")}
                     >
-                        Challenges
+                        Journey
                     </Button>
                     <Button
                         variant={

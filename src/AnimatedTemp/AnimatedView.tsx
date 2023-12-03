@@ -14,6 +14,67 @@ import {
     rotateMeshY,
     rotateMeshZ,
 } from "./MeshRotationHelper";
+import LoadedModel from "@/LoadedModel";
+
+const RingY = ({ depth }: { depth: boolean }) => {
+    return (
+        <>
+            <mesh rotation-x={degToRad(90)} scale={2}>
+                <circleGeometry args={[1, 32]} />
+                <meshBasicMaterial color={"#33ff20"} opacity={0} transparent />
+                <Edges scale={1} threshold={10} color="red" />
+            </mesh>
+            <mesh
+                rotation-x={degToRad(90)}
+                scale={0.03}
+                position-z={1.99}
+                rotation-z={degToRad(-90)}
+            >
+                <coneGeometry args={[8, 20, 32]} />
+                <meshStandardMaterial color={"#33ff20"} />
+            </mesh>
+            <mesh
+                rotation-x={degToRad(90)}
+                scale={depth ? 0.023 : 0.03}
+                position-z={-1.99}
+                rotation-z={degToRad(90)}
+            >
+                <coneGeometry args={[8, 20, 32]} />
+                <meshStandardMaterial color={"#33ff20"} />
+            </mesh>
+        </>
+    );
+};
+
+const RingCircle = ({ depth }: { depth: boolean }) => {
+    return (
+        <>
+            <mesh rotation-x={degToRad(90)} scale={4}>
+                <circleGeometry args={[1, 32]} />
+                <meshBasicMaterial color={"#33ff20"} opacity={0} transparent />
+                <Edges scale={1} threshold={10} color="red" />
+            </mesh>
+            <mesh
+                rotation-x={degToRad(90)}
+                scale={0.04}
+                position-z={-1.99 * 2}
+                rotation-z={degToRad(-90)}
+            >
+                <coneGeometry args={[8, 20, 32]} />
+                <meshStandardMaterial color={"#33ff20"} />
+            </mesh>
+            <mesh
+                rotation-x={degToRad(90)}
+                scale={depth ? 0.028 : 0.04}
+                position-z={1.99 * 2}
+                rotation-z={degToRad(90)}
+            >
+                <coneGeometry args={[8, 20, 32]} />
+                <meshStandardMaterial color={"#33ff20"} />
+            </mesh>
+        </>
+    );
+};
 
 const Shape = () => {
     const meshGroup = useRef<Group>(null!);
@@ -90,29 +151,63 @@ const Shape = () => {
     }
 
     if (shape == "cylinder") {
-        geometry = <cylinderGeometry args={[1.3, 1.3, 1.3, 32]} />;
+        geometry = <cylinderGeometry args={[1.3, 1.3, 2, 32]} />;
     }
 
     if (shape == "cone") {
         geometry = <coneGeometry args={[1, 2, 10]} />;
     }
 
+    const boxRotateZConfig = {
+        rotationY: degToRad(45),
+    };
+
+    const cylinderRotateZConfig = {
+        rotationY: degToRad(45),
+    };
+
+    const cylinderRotateXConfig = {
+        rotationZ: degToRad(180),
+    };
+
+    const cylinderConfigWhenZ = {
+        rotationZ: degToRad(90),
+    };
+
     return (
         <animated.group ref={meshGroup}>
-            <mesh rotation-z={shape == "cylinder" ? degToRad(90) : 0}>
+            {/* <LoadedModel /> */}
+            <mesh
+                rotation-z={shape == "cylinder" ? degToRad(180) : 0}
+                // rotation-y={degToRad(45)}
+            >
                 {geometry}
                 <meshBasicMaterial color={"#33ff20"} opacity={0} transparent />
                 <Edges scale={1} threshold={10} color="white" />
             </mesh>
 
-            <mesh
+            {/* <group rotation-z={degToRad(270)} rotation-y={degToRad(0)}> */}
+            {/* <RingY depth={true} /> */}
+            {/* </group> */}
+
+            <group
+                position-x={0}
+                position-y={0}
+                position-z={4}
+                rotation-x={degToRad(90)}
+                rotation-y={degToRad(0)}
+                rotation-z={degToRad(90)}
+            >
+                <RingCircle depth={true} />
+            </group>
+            {/*<mesh
                 rotation-z={shape == "cylinder" ? degToRad(90) : 0}
                 position={[0, 4, 2]}
             >
                 {geometry}
                 <meshBasicMaterial color={"#33ff20"} opacity={0} transparent />
                 <Edges scale={1} threshold={10} color="white" />
-            </mesh>
+            </mesh> */}
         </animated.group>
     );
 };
@@ -121,7 +216,7 @@ export default function AnimatedView() {
     const { camPos, animation_type } = useParams();
 
     // default
-    let camPosY = 0;
+    let camPosY = 3;
     let camPosZ = 4;
 
     if (animation_type == "circle") {
@@ -145,10 +240,17 @@ export default function AnimatedView() {
         <div className="h-screen">
             <Canvas camera={{ position: [0, camPosY, camPosZ] }}>
                 <OrbitControls />
+                <ambientLight intensity={1} />
+                <directionalLight
+                    intensity={0.4}
+                    color={0xffffff}
+                    position={[2, 2, 2]}
+                />
                 <mesh>
                     <boxGeometry args={[0.1, 0.1, 0.1]} />
                     <meshBasicMaterial />
                 </mesh>
+
                 <Shape />
             </Canvas>
         </div>
