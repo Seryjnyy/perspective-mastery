@@ -5,15 +5,36 @@ import { Typography } from "../components/ui/typography";
 import Footer from "@/components/Footer";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import AboutJourney from "./AboutJourney";
+import AboutFreeview from "./AboutFreeview";
+import { GitHubLogoIcon } from "@radix-ui/react-icons";
+
+const GetStartedOrLearnMore = () => {
+  return (
+    <div>
+      <Link
+        href={"/journey"}
+        className={cn(buttonVariants({ variant: "default" }))}
+      >
+        Begin the journey
+      </Link>
+
+      <Button variant={"outline"} className="ml-2">
+        Learn more
+      </Button>
+    </div>
+  );
+};
 
 const Hero = () => {
   return (
-    <>
+    <div>
       <div className="absolute right-0 h-screen opacity-70">
         {/* <img src={grid} className="h-screen" /> */}
       </div>
-      <div className="">
-        <div className="px-8 pt-8">
+
+      <div>
+        <div className="md:px-8 px-2 pt-8">
           <div>
             <h1 className="font-extrabold text-5xl md:text-7xl">
               Master the tricky perspective.
@@ -28,20 +49,11 @@ const Hero = () => {
           </div>
 
           <div className="mt-8">
-            <Link
-              href={"/journey"}
-              className={cn(buttonVariants({ variant: "default" }))}
-            >
-              Begin the journey
-            </Link>
-
-            <Button variant={"outline"} className="ml-2">
-              Learn more
-            </Button>
+            <GetStartedOrLearnMore />
           </div>
         </div>
 
-        <div className="flex gap-2 md:gap-3 mt-32 items-end flex-wrap justify-center md:justify-start">
+        <div className="flex gap-4 md:gap-3 mt-32 items-end flex-wrap justify-center md:justify-start">
           <div className="w-60">
             <Card className="relative">
               <CardContent className="p-2">
@@ -119,9 +131,27 @@ const Hero = () => {
                 </div> */}
         </div>
       </div>
-    </>
+    </div>
   );
 };
+
+// const AboutFreeview = () => {
+//   return (
+//     <div>
+//       <h2 className="font-bold text-2xl">Freeview</h2>
+//       <p className="opacity-80">
+//         Checkout freeview to explore models freely, to check or practice
+//         something specific.
+//       </p>
+//       <Image
+//         src={"/journey/cylinderRotateAboveX.png"}
+//         alt={"something"}
+//         width={930}
+//         height={930}
+//       />
+//     </div>
+//   );
+// };
 
 const HowToUse = () => {
   return (
@@ -143,19 +173,54 @@ const HowToUse = () => {
       </Typography>
       <Typography>You will need to put in work, there is no secret.</Typography>
       <Typography>
-        Tips: don't try to go through the entire catalogue as quick as possible,
-        take your time on the earlier challenges till you can draw it naturally.
+        {
+          "Tips: don't try to go through the entire catalogue as quick as possible, take your time on the earlier challenges till you can draw it naturally."
+        }
       </Typography>
+    </div>
+  );
+};
+
+const Contribute = () => {
+  return (
+    <div className="flex justify-center flex-col items-center">
+      <h2 className="font-bold text-4xl">Want to contribute?</h2>
+      <div className="flex justify-center flex-col items-center">
+        <div className="gap-1 pt-2 flex justify-center flex-col items-center opacity-80">
+          <p>
+            If you have ideas for features and ways to make the experience
+            better.
+          </p>
+          <span className="text-sm opacity-70">Or</span>
+          <p>If you found any bugs.</p>
+        </div>
+        <Link
+          href={process.env.GITHUB_LINK ?? "#"}
+          className={cn(
+            buttonVariants({ variant: "outline" }),
+            "mt-12 space-x-2"
+          )}
+        >
+          <span> Vist the GitHub page</span> <GitHubLogoIcon />
+        </Link>
+      </div>
     </div>
   );
 };
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
+    <main className="flex min-h-screen flex-col items-center justify-between md:px-24 pt-24 md:pb-12 ">
       <div className="flex flex-col mx-1 md:mx-8 mt-8 relative">
         <Hero />
-        <HowToUse />
+        {/* <HowToUse /> */}
+        <div className="py-18 my-28 px-2">
+          <AboutJourney />
+        </div>
+        <div className="py-18 my-28">
+          <AboutFreeview />
+        </div>
+        <Contribute />
         <Footer />
       </div>
     </main>

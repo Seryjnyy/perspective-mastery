@@ -32,8 +32,9 @@ import { Typography } from "./ui/typography";
 interface ViewerDesc {
   viewerDesc?: {
     shape: string;
+    animationType: string;
     camPos: string;
-    rotation_axis: string;
+    axis: string;
   };
   exitIcon: boolean;
 }
@@ -43,11 +44,18 @@ const SmallMenu = ({ viewerDesc, exitIcon }: ViewerDesc) => {
   let topLeftContent = <></>;
 
   if (exitIcon || viewerDesc) {
-    let descString = "";
+    let descString = undefined;
 
     if (viewerDesc) {
       const connective = viewerDesc.camPos == "level" ? "with" : "the";
-      descString = `Camera ${viewerDesc.camPos} ${connective} ${viewerDesc.shape}`;
+      const animationType =
+        viewerDesc.animationType == "rotate" ? "rotating" : "circling";
+      descString = (
+        <span>
+          {`Camera ${viewerDesc.camPos} ${connective} ${viewerDesc.shape}, `}
+          {`${animationType} on ${viewerDesc.axis} axis`}
+        </span>
+      );
     }
 
     topLeftContent = (
@@ -136,17 +144,21 @@ export default function Navbar() {
   const pathname = usePathname();
 
   const pathVars = pathname.split("/");
+  console.log(pathVars);
   if (pathVars[1] == "viewer") {
+    let viewerDesc = undefined;
+    if (pathVars.length >= 5) {
+      viewerDesc = {
+        shape: pathVars[2],
+        animationType: pathVars[3],
+        camPos: pathVars[4],
+        axis: pathVars[5],
+      };
+    }
+
     return (
       <nav>
-        <SmallMenu
-          viewerDesc={{
-            shape: pathVars[2],
-            camPos: pathVars[3],
-            rotation_axis: pathVars[4],
-          }}
-          exitIcon={true}
-        />
+        <SmallMenu viewerDesc={viewerDesc} exitIcon={true} />
       </nav>
     );
   }
@@ -183,8 +195,9 @@ export default function Navbar() {
             </div>
           </Link>
 
-          {links.map((link) => (
+          {links.map((link, index) => (
             <Link
+              key={link.label + index}
               href={`/${link.path}`}
               className={cn(
                 buttonVariants({

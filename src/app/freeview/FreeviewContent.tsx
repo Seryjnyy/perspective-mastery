@@ -63,12 +63,13 @@ const WireShape = forwardRef<Mesh, WireShapeProps>((props, ref) => {
       />
       <Edges
         scale={props.edges ? 1 : 0}
-        threshold={10} // Display edges only when the angle between two faces exceeds this value (default=15 degrees)
+        threshold={1} // Display edges only when the angle between two faces exceeds this value (default=15 degrees)
         color="white"
       />
     </mesh>
   );
 });
+WireShape.displayName = "WireShape";
 
 const ShapeWithControls = ({
   shapeControls,

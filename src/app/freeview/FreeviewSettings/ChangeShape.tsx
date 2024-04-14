@@ -1,17 +1,48 @@
 import { Button } from "@/components/ui/button";
-import { Command, CommandGroup, CommandItem } from "@/components/ui/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Typography } from "@/components/ui/typography";
-import { cn } from "@/lib/utils";
-import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
+import { CaretSortIcon } from "@radix-ui/react-icons";
 import { useState } from "react";
-import { Shapes, useFreeviewContext } from "../FreeviewContext";
+import { useFreeviewContext } from "../FreeviewContext";
 
-// const availableShapes = ["box", "cylinder"];
+const shapes = [
+  {
+    value: "box",
+    label: "Box",
+  },
+  {
+    value: "cylinder",
+    label: "Cylinder",
+  },
+  {
+    value: "cone",
+    label: "Cone",
+  },
+  {
+    value: "capsule",
+    label: "Capsule",
+  },
+  {
+    value: "ring",
+    label: "Ring",
+  },
+  {
+    value: "circle",
+    label: "Circle",
+  },
+  {
+    value: "torus",
+    label: "Torus",
+  },
+  {
+    value: "torusKnot",
+    label: "Torus Knot",
+  },
+];
 
 export default function ChangeShape() {
   const { shape, setShape } = useFreeviewContext();
@@ -19,6 +50,7 @@ export default function ChangeShape() {
   const [value, setValue] = useState(shape.current);
 
   const handleChangeShape = (newShape: string) => {
+    if (newShape == shape.current) return;
     // HACK : select passes in the value in all lower case for some reason
     if (newShape == "torusknot") {
       newShape = "torusKnot";
@@ -41,40 +73,7 @@ export default function ChangeShape() {
   };
 
   // TODO : context has type for this, should be created this array with it in mind
-  const shapes: { value: Shapes; label: string }[] = [
-    {
-      value: "box",
-      label: "Box",
-    },
-    {
-      value: "cylinder",
-      label: "Cylinder",
-    },
-    {
-      value: "cone",
-      label: "Cone",
-    },
-    {
-      value: "capsule",
-      label: "Capsule",
-    },
-    {
-      value: "ring",
-      label: "Ring",
-    },
-    {
-      value: "circle",
-      label: "Circle",
-    },
-    {
-      value: "torus",
-      label: "Torus",
-    },
-    {
-      value: "torusKnot",
-      label: "Torus Knot",
-    },
-  ];
+  const stuff = ["ah", "bet"];
   return (
     <div>
       <Typography variant="h4">Geometry</Typography>
@@ -95,28 +94,26 @@ export default function ChangeShape() {
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-[200px] p-0">
-            <Command>
-              <CommandGroup>
-                {shapes.map((item) => (
-                  <CommandItem
-                    key={item.value}
-                    value={item.value}
-                    onSelect={(currentValue) => {
-                      handleChangeShape(currentValue);
-                      setOpen(false);
-                    }}
-                  >
-                    {item.label}
+            {shapes.map((item, index) => (
+              <Button
+                variant={"ghost"}
+                key={item.value}
+                className="w-full"
+                onClick={() => {
+                  handleChangeShape(item.value);
+                  setOpen(false);
+                }}
+              >
+                {item.label}
+                {/* {item.label}
                     <CheckIcon
                       className={cn(
                         "ml-auto h-4 w-4",
                         value === item.value ? "opacity-100" : "opacity-0"
                       )}
-                    />
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </Command>
+                    /> */}
+              </Button>
+            ))}
           </PopoverContent>
         </Popover>
       </div>
