@@ -157,6 +157,7 @@ const Contribute = () => {
           <p>If you found any bugs.</p>
         </div>
         <Link
+          target="_blank"
           href={process.env.GITHUB_LINK ?? "#"}
           className={cn(
             buttonVariants({ variant: "outline" }),
