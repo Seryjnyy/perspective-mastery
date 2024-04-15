@@ -3,18 +3,18 @@ const completed_levels_store_name = "completed_levels";
 export const createChallengeID = (
   shape: string,
   animationType: string,
-  variant: string
+  axis: string
 ) => {
-  return "" + shape + animationType + variant;
+  return `${shape}-${animationType}-${axis}`;
 };
 
 export const createLevelID = (
   shape: string,
   animationType: string,
   camPos: string,
-  variant: string
+  axis: string
 ) => {
-  return "" + shape + animationType + camPos + variant;
+  return `${shape}-${animationType}-${camPos}-${axis}`;
 };
 
 const getCompletedChallenges = () => {

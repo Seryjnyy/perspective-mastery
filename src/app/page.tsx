@@ -9,6 +9,7 @@ import AboutJourney from "./AboutJourney";
 import AboutFreeview from "./AboutFreeview";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import HowDoIUseThis from "./HowDoIUseThis";
+import LearnMoreScrollButton from "./LearnMoreScrollButton";
 
 const GetStartedOrLearnMore = () => {
   return (
@@ -20,12 +21,13 @@ const GetStartedOrLearnMore = () => {
         Begin the journey
       </Link>
 
-      <Link
+      <LearnMoreScrollButton />
+      {/* <Link
         href={"/about"}
         className={cn(buttonVariants({ variant: "outline" }))}
       >
         Learn more
-      </Link>
+      </Link> */}
     </div>
   );
 };
@@ -62,11 +64,12 @@ const Hero = () => {
             <Card className="relative">
               <CardContent className="p-2">
                 <Image
-                  src={"/journey/boxRotateAboveY.png"}
+                  src={"/journey/box-rotate-above-y.png"}
                   className="rounded-2xl"
                   alt={"Image of box."}
                   width={930}
                   height={930}
+                  priority
                 />
               </CardContent>
               <CardFooter className="flex justify-between px-2 pb-2 items-start">
@@ -89,11 +92,12 @@ const Hero = () => {
             <Card className="relative">
               <CardContent className="p-2">
                 <Image
-                  src={"/journey/cylinderRotateAboveY.png"}
+                  src={"/journey/cylinder-rotate-above-y.png"}
                   className="rounded-2xl"
                   alt={"Image of cylinder."}
                   width={930}
                   height={930}
+                  priority
                 />
               </CardContent>
               <CardFooter className="flex justify-between px-2 pb-2 items-start">
@@ -171,13 +175,15 @@ export default function Home() {
     <main className="flex min-h-screen flex-col items-center justify-between px-2 sm:px-16 md:px-24 pt-24 md:pb-12 ">
       <div className="flex flex-col mx-1 md:mx-8 mt-8 relative">
         <Hero />
-        <div className="py-18 my-28">
-          <AboutJourney />
+        <div className="space-y-[18rem] pt-[12rem] pb-[6rem]">
+          <div>
+            <AboutJourney />
+          </div>
+          <div>
+            <AboutFreeview />
+          </div>
+          <Contribute />
         </div>
-        <div className="py-18 my-28">
-          <AboutFreeview />
-        </div>
-        <Contribute />
         <Footer />
       </div>
     </main>

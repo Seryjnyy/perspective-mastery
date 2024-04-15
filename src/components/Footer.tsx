@@ -8,7 +8,7 @@ const FooterLinks = () => {
     { link: "/journey", label: "Journey" },
     { link: "/freeview", label: "Freeview" },
     // { link: "/resources", label: "Resources" },
-    { link: "/about", label: "About" },
+    // { link: "/about", label: "About" },
   ];
   return (
     <div className="pt-12 lg:pt-0">

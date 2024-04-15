@@ -14,93 +14,94 @@ type Challenge = {
 };
 
 const createImgSrcPath = (img: string) => {
+  console.log(`/journey/${img}.png`);
   return `/journey/${img}.png`;
 };
 
 const boxCircleChallenges: Challenge[] = [
   {
-    id: "box_circle_y",
+    id: "box-circle-y",
     title: "Circling box",
     desc: "Circle around the y axis.",
     axis: "y",
     levels: [
       {
-        id: "boxCircleAboveY",
+        id: "box-circle-above-y",
 
         camera: "above",
-        imgSrc: createImgSrcPath("boxCircleAboveY"),
+        imgSrc: createImgSrcPath("box-circle-above-y"),
         viewerLink: "/viewer/box/circle/above/y",
       },
       {
-        id: "boxCircleLevelY",
+        id: "box-circle-level-y",
 
         camera: "level",
-        imgSrc: createImgSrcPath("boxCircleLevelY"),
+        imgSrc: createImgSrcPath("box-circle-level-y"),
         viewerLink: "/viewer/box/circle/level/y",
       },
       {
-        id: "boxCircleBelowY",
+        id: "box-circle-below-y",
 
         camera: "below",
-        imgSrc: createImgSrcPath("boxCircleBelowY"),
+        imgSrc: createImgSrcPath("box-circle-below-y"),
         viewerLink: "/viewer/box/circle/below/y",
       },
     ],
   },
   {
-    id: "box_circle_x",
+    id: "box-circle-x",
     title: "Circling box",
     desc: "Circle around the x axis.",
     axis: "x",
     levels: [
       {
-        id: "boxCircleAboveX",
+        id: "box-circle-above-x",
 
         camera: "above",
-        imgSrc: createImgSrcPath("boxCircleAboveX"),
+        imgSrc: createImgSrcPath("box-circle-above-x"),
         viewerLink: "/viewer/box/circle/above/x",
       },
       {
-        id: "boxCircleLevelX",
+        id: "box-circle-level-x",
 
         camera: "level",
-        imgSrc: createImgSrcPath("boxCircleLevelX"),
+        imgSrc: createImgSrcPath("box-circle-level-x"),
         viewerLink: "/viewer/box/circle/level/x",
       },
       {
-        id: "boxCircleBelowX",
+        id: "box-circle-below-x",
 
         camera: "below",
-        imgSrc: createImgSrcPath("boxCircleBelowX"),
+        imgSrc: createImgSrcPath("box-circle-below-x"),
         viewerLink: "/viewer/box/circle/below/x",
       },
     ],
   },
   {
-    id: "box_circle_z",
+    id: "box-circle-z",
     title: "Circling box",
     desc: "Circle around the z axis.",
     axis: "z",
     levels: [
       {
-        id: "boxCircleAboveZ",
+        id: "box-circle-above-z",
 
         camera: "above",
-        imgSrc: createImgSrcPath("boxCircleAboveZ"),
+        imgSrc: createImgSrcPath("box-circle-above-z"),
         viewerLink: "/viewer/box/circle/above/z",
       },
       {
-        id: "boxCircleLevelZ",
+        id: "box-circle-level-z",
 
         camera: "level",
-        imgSrc: createImgSrcPath("boxCircleLevelZ"),
+        imgSrc: createImgSrcPath("box-circle-level-z"),
         viewerLink: "/viewer/box/circle/level/z",
       },
       {
-        id: "boxCircleBelowZ",
+        id: "box-circle-below-z",
 
         camera: "below",
-        imgSrc: createImgSrcPath("boxCircleBelowZ"),
+        imgSrc: createImgSrcPath("box-circle-below-z"),
         viewerLink: "/viewer/box/circle/below/z",
       },
     ],
@@ -109,86 +110,86 @@ const boxCircleChallenges: Challenge[] = [
 
 const cylinderCircleChallenges: Challenge[] = [
   {
-    id: "cylinder_circle_y",
+    id: "cylinder-circle-y",
     title: "Circling cylinder",
     desc: "Circle around the y axis.",
     axis: "y",
     levels: [
       {
-        id: "cylinder_circle_above_y",
+        id: "cylinder-circle-above-y",
         camera: "above",
-        imgSrc: createImgSrcPath("cylinderCircleAboveY"),
+        imgSrc: createImgSrcPath("cylinder-circle-above-y"),
         viewerLink: "/viewer/cylinder/circle/above/y",
       },
       {
-        id: "cylinder_circle_level_y",
+        id: "cylinder-circle-level-y",
         camera: "level",
-        imgSrc: createImgSrcPath("cylinderCircleLevelY"),
+        imgSrc: createImgSrcPath("cylinder-circle-level-y"),
         viewerLink: "/viewer/cylinder/circle/level/y",
       },
       {
-        id: "cylinder_circle_below_y",
+        id: "cylinder-circle-below-y",
 
         camera: "below",
-        imgSrc: createImgSrcPath("cylinderCircleBelowY"),
+        imgSrc: createImgSrcPath("cylinder-circle-below-y"),
         viewerLink: "/viewer/cylinder/circle/below/y",
       },
     ],
   },
   {
-    id: "cylinder_circle_x",
+    id: "cylinder-circle-x",
     title: "Circling cylinder",
     desc: "Circle around the x axis.",
     axis: "x",
     levels: [
       {
-        id: "cylinderCircleAboveX",
+        id: "cylinder-circle-above-x",
 
         camera: "above",
-        imgSrc: createImgSrcPath("cylinderCircleAboveX"),
+        imgSrc: createImgSrcPath("cylinder-circle-above-x"),
         viewerLink: "/viewer/cylinder/circle/above/x",
       },
       {
-        id: "cylinderCircleLevelX",
+        id: "cylinder-circle-level-x",
 
         camera: "level",
-        imgSrc: createImgSrcPath("cylinderCircleLevelX"),
+        imgSrc: createImgSrcPath("cylinder-circle-level-x"),
         viewerLink: "/viewer/cylinder/circle/level/x",
       },
       {
-        id: "cylinderCircleBelowX",
+        id: "cylinder-circle-below-x",
 
         camera: "below",
-        imgSrc: createImgSrcPath("cylinderCircleBelowX"),
+        imgSrc: createImgSrcPath("cylinder-circle-below-x"),
         viewerLink: "/viewer/cylinder/circle/below/x",
       },
     ],
   },
   {
-    id: "cylinder_circle_z",
+    id: "cylinder-circle-z",
     title: "Circling cylinder",
     desc: "Circle around the z axis.",
     axis: "z",
     levels: [
       {
-        id: "cylinderCircleAboveZ",
+        id: "cylinder-circle-above-z",
 
         camera: "above",
-        imgSrc: createImgSrcPath("cylinderCircleAboveZ"),
+        imgSrc: createImgSrcPath("cylinder-circle-above-z"),
         viewerLink: "/viewer/cylinder/circle/above/z",
       },
       {
-        id: "cylinderCircleLevelZ",
+        id: "cylinder-circle-level-z",
 
         camera: "level",
-        imgSrc: createImgSrcPath("cylinderCircleLevelZ"),
+        imgSrc: createImgSrcPath("cylinder-circle-level-z"),
         viewerLink: "/viewer/cylinder/circle/level/z",
       },
       {
-        id: "cylinderCircleBelowZ",
+        id: "cylinder-circle-below-z",
 
         camera: "below",
-        imgSrc: createImgSrcPath("cylinderCircleBelowZ"),
+        imgSrc: createImgSrcPath("cylinder-circle-below-z"),
         viewerLink: "/viewer/cylinder/circle/below/z",
       },
     ],
@@ -197,82 +198,82 @@ const cylinderCircleChallenges: Challenge[] = [
 
 const boxRotateChallenges: Challenge[] = [
   {
-    id: "box_rotation_y",
+    id: "box-rotate-y",
     title: "Box rotation",
     desc: "Rotation around the y axis.",
     axis: "y",
     levels: [
       {
-        id: "boxRotationAboveY",
+        id: "box-rotate-above-y",
 
         camera: "above",
-        imgSrc: createImgSrcPath("boxRotateAboveY"),
+        imgSrc: createImgSrcPath("box-rotate-above-y"),
         viewerLink: "/viewer/box/rotate/above/y",
       },
       {
-        id: "boxRotationLevelY",
+        id: "box-rotate-level-y",
 
         camera: "level",
-        imgSrc: createImgSrcPath("boxRotateLevelY"),
+        imgSrc: createImgSrcPath("box-rotate-level-y"),
         viewerLink: "/viewer/box/rotate/level/y",
       },
       {
-        id: "boxRotationBelowY",
+        id: "box-rotate-below-y",
 
         camera: "below",
-        imgSrc: createImgSrcPath("boxRotateBelowY"),
+        imgSrc: createImgSrcPath("box-rotate-below-y"),
         viewerLink: "/viewer/box/rotate/below/y",
       },
     ],
   },
   {
-    id: "box_rotation_x",
+    id: "box-rotate-x",
     title: "Box rotation",
     desc: "Rotation around the x axis.",
     axis: "x",
     levels: [
       {
-        id: "boxRotationAboveX",
+        id: "box-rotate-above-x",
         camera: "above",
-        imgSrc: createImgSrcPath("boxRotateAboveX"),
+        imgSrc: createImgSrcPath("box-rotate-above-x"),
         viewerLink: "/viewer/box/rotate/above/x",
       },
       {
-        id: "boxRotationLevelX",
+        id: "box-rotate-level-x",
         camera: "level",
-        imgSrc: createImgSrcPath("boxRotateLevelX"),
+        imgSrc: createImgSrcPath("box-rotate-level-x"),
         viewerLink: "/viewer/box/rotate/level/x",
       },
       {
-        id: "boxRotationBelowX",
+        id: "box-rotate-below-x",
         camera: "below",
-        imgSrc: createImgSrcPath("boxRotateBelowX"),
+        imgSrc: createImgSrcPath("box-rotate-below-x"),
         viewerLink: "/viewer/box/rotate/below/x",
       },
     ],
   },
   {
-    id: "box_rotation_z",
+    id: "box-rotate-z",
     title: "Box rotation",
     desc: "Rotation around the z axis.",
     axis: "z",
     levels: [
       {
-        id: "boxRotationAboveZ",
+        id: "box-rotate-above-z",
         camera: "above",
-        imgSrc: createImgSrcPath("boxRotateAboveZ"),
+        imgSrc: createImgSrcPath("box-rotate-above-z"),
         viewerLink: "/viewer/box/rotate/above/z",
       },
       {
-        id: "boxRotationLevelZ",
+        id: "box-rotate-level-z",
         camera: "level",
-        imgSrc: createImgSrcPath("boxRotateLevelZ"),
+        imgSrc: createImgSrcPath("box-rotate-level-z"),
         viewerLink: "/viewer/box/rotate/level/z",
       },
       {
-        id: "boxRotationBelowZ",
+        id: "box-rotate-below-z",
         camera: "below",
-        imgSrc: createImgSrcPath("boxRotateBelowZ"),
+        imgSrc: createImgSrcPath("box-rotate-below-z"),
         viewerLink: "/viewer/box/rotate/below/z",
       },
     ],
@@ -281,88 +282,87 @@ const boxRotateChallenges: Challenge[] = [
 
 const cylinderRotateChallenges: Challenge[] = [
   {
-    id: "cylinder_rotation_y",
+    id: "cylinder-rotate-y",
     title: "Cylinder rotation",
     desc: "Rotation around the y axis.",
     axis: "y",
     levels: [
       {
-        id: "cylinderRotationAboveY",
+        id: "cylinder-rotate-above-y",
 
         camera: "above",
-        imgSrc: createImgSrcPath("cylinderRotateAboveY"),
+        imgSrc: createImgSrcPath("cylinder-rotate-above-y"),
         viewerLink: "/viewer/cylinder/rotate/above/y",
       },
       {
-        id: "cylinderRotationLevelY",
+        id: "cylinder-rotate-level-y",
 
         camera: "level",
-        imgSrc: createImgSrcPath("cylinderRotateLevelY"),
+        imgSrc: createImgSrcPath("cylinder-rotate-level-y"),
         viewerLink: "/viewer/cylinder/rotate/level/y",
       },
       {
-        id: "cylinderRotationBelowY",
-
+        id: "cylinder-rotate-below-y",
         camera: "below",
-        imgSrc: createImgSrcPath("cylinderRotateBelowY"),
+        imgSrc: createImgSrcPath("cylinder-rotate-below-y"),
         viewerLink: "/viewer/cylinder/rotate/below/y",
       },
     ],
   },
   {
-    id: "cylinder_rotation_x",
+    id: "cylinder-rotate-x",
     title: "Cylinder rotation",
     desc: "Rotation around the x axis.",
     axis: "x",
     levels: [
       {
-        id: "cylinderRotationAboveX",
+        id: "cylinder-rotate-above-x",
 
         camera: "above",
-        imgSrc: createImgSrcPath("cylinderRotateAboveX"),
+        imgSrc: createImgSrcPath("cylinder-rotate-above-x"),
         viewerLink: "/viewer/cylinder/rotate/above/x",
       },
       {
-        id: "cylinderRotationLevelX",
+        id: "cylinder-rotate-level-x",
 
         camera: "level",
-        imgSrc: createImgSrcPath("cylinderRotateLevelX"),
+        imgSrc: createImgSrcPath("cylinder-rotate-level-x"),
         viewerLink: "/viewer/cylinder/rotate/level/x",
       },
       {
-        id: "cylinderRotationBelowX",
+        id: "cylinder-rotate-below-x",
 
         camera: "below",
-        imgSrc: createImgSrcPath("cylinderRotateBelowX"),
+        imgSrc: createImgSrcPath("cylinder-rotate-below-x"),
         viewerLink: "/viewer/cylinder/rotate/below/x",
       },
     ],
   },
   {
-    id: "cylinder_rotation_z",
+    id: "cylinder-rotate-z",
     title: "Cylinder rotation",
     desc: "Rotation around the z axis.",
     axis: "z",
     levels: [
       {
-        id: "cylinderRotationAboveZ",
+        id: "cylinder-rotate-above-z",
 
         camera: "above",
-        imgSrc: createImgSrcPath("cylinderRotateAboveZ"),
+        imgSrc: createImgSrcPath("cylinder-rotate-above-z"),
         viewerLink: "/viewer/cylinder/rotate/above/z",
       },
       {
-        id: "cylinderRotationLevelZ",
+        id: "cylinder-rotate-level-z",
 
         camera: "level",
-        imgSrc: createImgSrcPath("cylinderRotateLevelZ"),
+        imgSrc: createImgSrcPath("cylinder-rotate-level-z"),
         viewerLink: "/viewer/cylinder/rotate/level/z",
       },
       {
-        id: "cylinderRotationBelowZ",
+        id: "cylinder-rotate-below-z",
 
         camera: "below",
-        imgSrc: createImgSrcPath("cylinderRotateBelowZ"),
+        imgSrc: createImgSrcPath("cylinder-rotate-below-z"),
         viewerLink: "/viewer/cylinder/rotate/below/z",
       },
     ],

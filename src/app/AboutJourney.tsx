@@ -7,14 +7,14 @@ import Link from "next/link";
 import HowDoIUseThis from "./HowDoIUseThis";
 
 const exampleImages = [
-  { link: "/journey/boxRotateAboveY.png", alt: "Box" },
-  { link: "/journey/boxRotateLevelX.png", alt: "Box" },
-  { link: "/journey/cylinderRotateAboveY.png", alt: "Cylinder" },
-  { link: "/journey/cylinderRotateAboveZ.png", alt: "Cylinder" },
-  { link: "/journey/boxRotateAboveZ.png", alt: "Box" },
-  { link: "/journey/cylinderCircleAboveY.png", alt: "Cylinder" },
-  { link: "/journey/boxCircleLevelY.png", alt: "Box" },
-  { link: "/journey/boxCircleLevelX.png", alt: "Box" },
+  { link: "/journey/box-rotate-above-y.png", alt: "Box" },
+  { link: "/journey/box-rotate-level-x.png", alt: "Box" },
+  { link: "/journey/cylinder-rotate-above-y.png", alt: "Cylinder" },
+  { link: "/journey/cylinder-rotate-above-z.png", alt: "Cylinder" },
+  { link: "/journey/box-rotate-above-z.png", alt: "Box" },
+  { link: "/journey/cylinder-circle-above-y.png", alt: "Cylinder" },
+  { link: "/journey/box-circle-level-y.png", alt: "Box" },
+  { link: "/journey/box-circle-level-x.png", alt: "Box" },
 ];
 
 export default function AboutJourney() {

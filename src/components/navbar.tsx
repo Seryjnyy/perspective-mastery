@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/tooltip";
 import {
   BoxIcon,
+  CubeIcon,
   ExitIcon,
   HamburgerMenuIcon,
   MoonIcon,
@@ -28,6 +29,7 @@ import { usePathname } from "next/navigation";
 import { ModeToggle } from "./mode-toggle";
 import { Toggle } from "./ui/toggle";
 import { Typography } from "./ui/typography";
+import { Icons } from "./Icons";
 
 interface ViewerDesc {
   viewerDesc?: {
@@ -79,7 +81,9 @@ const SmallMenu = ({ viewerDesc, exitIcon }: ViewerDesc) => {
         )}
 
         <div className="ml-2">
-          <Typography variant="mutedText">{descString}</Typography>
+          <Typography variant="mutedText" className="max-w-[20ch] md:max-w-fit">
+            {descString}
+          </Typography>
         </div>
       </div>
     );
@@ -100,26 +104,30 @@ const SmallMenu = ({ viewerDesc, exitIcon }: ViewerDesc) => {
           </DropdownMenuTrigger>
           <DropdownMenuContent sideOffset={8}>
             <Link href={"/"}>
-              <DropdownMenuItem>
-                <BoxIcon />
+              <DropdownMenuItem className="space-x-1">
+                <CubeIcon /> <span>mastery</span>
               </DropdownMenuItem>
             </Link>
+            <DropdownMenuSeparator />
             <Link href={"/journey"}>
               <DropdownMenuItem>Journey</DropdownMenuItem>
+            </Link>
+            <Link href={"/freeview"}>
+              <DropdownMenuItem>Freeview</DropdownMenuItem>
             </Link>
             {/* <Link href={"/journey"}>
               <DropdownMenuItem>Resources</DropdownMenuItem>
             </Link> */}
-            <Link href={"/journey"}>
+            {/* <Link href={"/journey"}>
               <DropdownMenuItem>About</DropdownMenuItem>
-            </Link>
+            </Link> */}
             <DropdownMenuSeparator />
             <DropdownMenuLabel>
               <div className="flex justify-start gap-2">
                 Theme
                 <div className="relative">
                   <SunIcon className="absolute h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                  <MoonIcon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                  <Icons.moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
                 </div>
               </div>
             </DropdownMenuLabel>
@@ -175,7 +183,7 @@ export default function Navbar() {
     { path: "journey", label: "Journey" },
     { path: "freeview", label: "Freeview" },
     // { path: "resources", label: "Resources" },
-    { path: "about", label: "About" },
+    // { path: "about", label: "About" },
   ];
 
   return (
@@ -190,7 +198,7 @@ export default function Navbar() {
             )}
           >
             <div className="flex items-center">
-              <BoxIcon className="mr-1" />
+              <CubeIcon className="mr-1" />
               mastery
             </div>
           </Link>

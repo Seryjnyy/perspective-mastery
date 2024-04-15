@@ -3,6 +3,7 @@ import {
   addCompleteChallengeLevel,
   createChallengeID,
   createLevelID,
+  getCompletedLevelsInChallenge,
 } from "@/lib/challengeService";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -100,6 +101,7 @@ export default function AnimatedUI({
     updateFrame(1);
 
     if (currentFrame.current == frameAmount.current) {
+      console.log("what", currentFrame.current, frameAmount.current);
       setComplete(true);
     }
   };
@@ -116,11 +118,20 @@ export default function AnimatedUI({
         ),
       });
 
-      // save completion
-      addCompleteChallengeLevel(
-        createChallengeID(shape, animationType, axis),
-        createLevelID(shape, animationType, camPos, axis)
+      const completedLevels = getCompletedLevelsInChallenge(
+        createChallengeID(shape, animationType, axis)
       );
+      if (
+        !completedLevels.includes(
+          createLevelID(shape, animationType, camPos, axis)
+        )
+      ) {
+        // save completion
+        addCompleteChallengeLevel(
+          createChallengeID(shape, animationType, axis),
+          createLevelID(shape, animationType, camPos, axis)
+        );
+      }
     }
   }, [complete]);
 
