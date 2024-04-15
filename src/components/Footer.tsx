@@ -11,9 +11,9 @@ const FooterLinks = () => {
     { link: "/about", label: "About" },
   ];
   return (
-    <div className="pt-12 md:pt-0">
+    <div className="pt-12 lg:pt-0">
       <h3 className="font-bold text-xl">Links</h3>
-      <ul className="flex md:flex-col md:gap-2 gap-3  flex-row">
+      <ul className="flex lg:flex-col lg:gap-2 gap-3  flex-row">
         {links.map((link, index) => (
           <li className="opacity-80" key={link.label + index}>
             <Link href={`${link.link}`}>{link.label}</Link>

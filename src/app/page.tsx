@@ -8,10 +8,11 @@ import Image from "next/image";
 import AboutJourney from "./AboutJourney";
 import AboutFreeview from "./AboutFreeview";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
+import HowDoIUseThis from "./HowDoIUseThis";
 
 const GetStartedOrLearnMore = () => {
   return (
-    <div>
+    <div className="space-x-2">
       <Link
         href={"/journey"}
         className={cn(buttonVariants({ variant: "default" }))}
@@ -19,9 +20,12 @@ const GetStartedOrLearnMore = () => {
         Begin the journey
       </Link>
 
-      <Button variant={"outline"} className="ml-2">
+      <Link
+        href={"/about"}
+        className={cn(buttonVariants({ variant: "outline" }))}
+      >
         Learn more
-      </Button>
+      </Link>
     </div>
   );
 };
@@ -44,7 +48,7 @@ const Hero = () => {
             <p className="w-80 md:w-96 text-muted-foreground">
               Improve your perspective knowledge by understanding how to rotate
               shapes in 3D space. I offer no secrets here, to progress you will
-              have to put in work. Learn how to draw shapes in 3D space.
+              have to put in work.
             </p>
           </div>
 
@@ -135,58 +139,12 @@ const Hero = () => {
   );
 };
 
-// const AboutFreeview = () => {
-//   return (
-//     <div>
-//       <h2 className="font-bold text-2xl">Freeview</h2>
-//       <p className="opacity-80">
-//         Checkout freeview to explore models freely, to check or practice
-//         something specific.
-//       </p>
-//       <Image
-//         src={"/journey/cylinderRotateAboveX.png"}
-//         alt={"something"}
-//         width={930}
-//         height={930}
-//       />
-//     </div>
-//   );
-// };
-
-const HowToUse = () => {
-  return (
-    <div className="w-full px-8 pt-[16rem] mt-[8rem] h-fit ">
-      <Typography variant={"h2nb"} as={"h2"} className="text-6xl font-bold">
-        How to use?
-      </Typography>
-      <Typography>
-        Begin the journey that will take you through easy to difficult tasks.
-      </Typography>
-      <Typography>
-        Try to draw what you see, and start making observations. Go through all
-        the rotations.
-      </Typography>
-      <Typography>
-        Its recommended that you go through a level twice. First trying to
-        predict how it will look like. Then drawing the actual version, then try
-        to compare
-      </Typography>
-      <Typography>You will need to put in work, there is no secret.</Typography>
-      <Typography>
-        {
-          "Tips: don't try to go through the entire catalogue as quick as possible, take your time on the earlier challenges till you can draw it naturally."
-        }
-      </Typography>
-    </div>
-  );
-};
-
 const Contribute = () => {
   return (
     <div className="flex justify-center flex-col items-center">
       <h2 className="font-bold text-4xl">Want to contribute?</h2>
       <div className="flex justify-center flex-col items-center">
-        <div className="gap-1 pt-2 flex justify-center flex-col items-center opacity-80">
+        <div className="gap-1 pt-2 flex justify-center flex-col items-center opacity-80 text-center">
           <p>
             If you have ideas for features and ways to make the experience
             better.
@@ -210,11 +168,10 @@ const Contribute = () => {
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between md:px-24 pt-24 md:pb-12 ">
+    <main className="flex min-h-screen flex-col items-center justify-between px-2 sm:px-16 md:px-24 pt-24 md:pb-12 ">
       <div className="flex flex-col mx-1 md:mx-8 mt-8 relative">
         <Hero />
-        {/* <HowToUse /> */}
-        <div className="py-18 my-28 px-2">
+        <div className="py-18 my-28">
           <AboutJourney />
         </div>
         <div className="py-18 my-28">

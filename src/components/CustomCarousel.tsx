@@ -9,8 +9,14 @@ import {
 } from "@/components/ui/carousel";
 import { ReactNode, useRef } from "react";
 
-export default function CustomCarousel({ children }: { children: ReactNode }) {
-  const plugin = useRef(Autoplay({ delay: 5000, stopOnInteraction: true }));
+export default function CustomCarousel({
+  children,
+  delay,
+}: {
+  children: ReactNode;
+  delay: number;
+}) {
+  const plugin = useRef(Autoplay({ delay: delay, stopOnInteraction: true }));
 
   return (
     <Carousel
