@@ -39,6 +39,7 @@ interface WireShapeProps {
   edges: boolean;
   rotation: { x: number; y: number; z: number };
   geometry: ReactNode;
+  shapeName: string;
 }
 
 const WireShape = forwardRef<Mesh, WireShapeProps>((props, ref) => {
@@ -66,6 +67,24 @@ const WireShape = forwardRef<Mesh, WireShapeProps>((props, ref) => {
         threshold={1} // Display edges only when the angle between two faces exceeds this value (default=15 degrees)
         color="white"
       />
+      {props.shapeName == "torusKnot" ? (
+        <Edges
+          scale={props.edges ? 1 : 0}
+          threshold={-360} // Display edges only when the angle between two faces exceeds this value (default=15 degrees)
+          color="white"
+        />
+      ) : (
+        <></>
+      )}
+      {props.shapeName == "torus" ? (
+        <Edges
+          scale={props.edges ? 1 : 0}
+          threshold={-360} // Display edges only when the angle between two faces exceeds this value (default=15 degrees)
+          color="white"
+        />
+      ) : (
+        <></>
+      )}
     </mesh>
   );
 });
@@ -201,23 +220,32 @@ const Content = () => {
   // TODO : i don't think we need to render all shapes at the same time anymore
 
   let geometry = <></>;
+  let shapeName = "";
 
   if (currentShape == "box") {
     geometry = <boxGeometry args={[2, 2, 2]} />;
+    shapeName = "box";
   } else if (currentShape == "cylinder") {
     geometry = <cylinderGeometry args={[2, 2, 2]} />;
+    shapeName = "cylinder";
   } else if (currentShape == "cone") {
     geometry = <coneGeometry args={[4, 5, 8]} />;
+    shapeName = "cone";
   } else if (currentShape == "ring") {
     geometry = <ringGeometry args={[1, 2, 32]} />;
+    shapeName = "ring";
   } else if (currentShape == "capsule") {
     geometry = <capsuleGeometry args={[1, 1, 4, 8]} />;
+    shapeName = "capsule";
   } else if (currentShape == "circle") {
     geometry = <circleGeometry args={[1, 32]} />;
+    shapeName = "circle";
   } else if (currentShape == "torus") {
     geometry = <torusGeometry args={[1, 0.25, 32, 100]} />;
+    shapeName = "torus";
   } else if (currentShape == "torusKnot") {
     geometry = <torusKnotGeometry args={[5, 1.5, 50, 8]} />;
+    shapeName = "torusKnot";
   }
 
   console.log(currentShape);
@@ -238,6 +266,7 @@ const Content = () => {
             solidColour={solidColourEnabled}
             edges={edgesEnabled}
             geometry={geometry}
+            shapeName={shapeName}
           />
         }
       />
@@ -357,7 +386,7 @@ export default function FreeviewContent() {
   );
 
   return (
-    <div className="bg-gray-950 h-screen">
+    <div className="h-screen">
       <KeyboardControls map={map}>
         <Canvas>
           <OrbitControls makeDefault />
