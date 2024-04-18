@@ -1,7 +1,8 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-    ![Logo](./Images/logo.png)
+
+![Logo](./Images/logo.png)
 
   <h1>Perspective mastery</h1>
 
