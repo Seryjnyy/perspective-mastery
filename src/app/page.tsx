@@ -49,7 +49,7 @@ const Hero = () => {
           <div className="mt-4">
             <p className="w-80 md:w-96 text-muted-foreground">
               Improve your perspective knowledge by understanding how to rotate
-              shapes in 3D space. I offer no secrets here, to progress you will
+              shapes in 3D space. I offer no secrets here; to progress you will
               have to put in work.
             </p>
           </div>

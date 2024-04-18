@@ -1,36 +1,98 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+<!-- PROJECT LOGO -->
+<br />
+<div align="center">
+    ![Logo](./Images/logo.png)
 
-## Getting Started
+  <h1>Perspective mastery</h1>
 
-First, run the development server:
+  <p align="center">
+    A tool for artists to learn perspective drawing.
+    </br>
+    <a href="https://perspective-mastery.vercel.app/"><strong>Visit the site</strong></a>
+    <br />
+    <br />
+    <a href="https://github.com/Seryjnyy/perspective-mastery/issues/new?assignees=&labels=&projects=&template=bug_report.md&title=">Report Bug</a>
+    ·
+    <a href="https://github.com/Seryjnyy/perspective-mastery/issues/new?assignees=&labels=&projects=&template=feature_request.md&title=">Request Feature</a>
+  </p>
+</div>
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+<!-- TABLE OF CONTENTS -->
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li>
+      <a href="#about">About</a>
+    </li>
+    <li><a href="#built-with">Built with</a></li>
+    <li><a href="#usage">Usage</a></li>
+    <li><a href="#status">Status</a></li>
+    <li>
+      <a href="#getting-started">Getting Started</a>
+      <ul>
+        <li><a href="#locally">Locally</a>
+          <ul>
+            <li><a href="#for-development">For development</a></li>
+            <li><a href="#locally">Just running it</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ol>
+</details>
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## About
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Improve your perspective knowledge by understanding how to rotate
+shapes in 3D space. I offer no secrets here; to progress you will
+have to put in work.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+"You can't draw what you don't know." is something you probably have heard already, but rarely is it applied to perspective.
 
-## Learn More
+How are you meant to know what a box looks like in all the different angles and positions if you haven't seen it before?
 
-To learn more about Next.js, take a look at the following resources:
+- Journey aims to help you learn perspective through challenges.
+- Freeview is a model viewer that will allow you to transform the model in various ways and then practice rotating it in 3D space.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Built with
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+- Next.JS
+- React
+- ShadCn
+- TailwindCSS
+- React Three Fiber
+- pmndrs/drei
 
-## Deploy on Vercel
+## Status
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The main features have been implemented, and there is more to come.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+If you find bugs or have a feature you want added, then you can create an issue.
+
+You can also create pull requests.
+
+## Getting started
+
+### Locally
+
+- You will need Node installed.
+
+#### For development
+
+- Run it locally.
+  ```
+  npm run dev
+  ```
+- Then visit [localhost:3000](localhost:3000) to see the site.
+  - Note: Check the console to get the link, as it might use another port.
+
+#### Build and deploy
+
+- Build the site.
+  ```
+  npm run build
+  ```
+  - You should lint before building.
+    ```
+    npm run lint
+    ```

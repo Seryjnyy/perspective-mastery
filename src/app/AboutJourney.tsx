@@ -31,13 +31,13 @@ export default function AboutJourney() {
             <br />
             <p>
               {
-                " \"You can't draw what you don't know.\" is something you probably have heard already but rarely is it applied to perspective."
+                " \"You can't draw what you don't know.\" is something you probably have heard already, but rarely is it applied to perspective."
               }
             </p>
             <br />
             <p>
               {
-                "How are you meant to know how a box looks like in all the different angles and positions if you haven't seen it before?"
+                "How are you meant to know what a box looks like in all the different angles and positions if you haven't seen it before?"
               }
             </p>
             <br />
