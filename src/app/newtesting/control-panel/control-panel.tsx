@@ -1,134 +1,73 @@
+import {ScrollArea, ScrollBar} from "@/components/ui/scroll-area";
 import {
-    AnimationTab,
-    CameraTab,
-    LookAtTab,
-    ObjectTab,
-    PositionTab,
-    RotationTab,
-    ScaleTab,
+  AnimationTab,
+  CameraTab, GizmosTab, GroundTab,
+  LookAtTab,
+  ObjectTab,
+  PositionTab,
+  RotationTab,
+  ScaleTab,
 } from "./tabs";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import React, { ReactNode } from "react";
+import Gizmos from "@/app/freeview/FreeviewSettings/Gizmos";
 
 export const ControlsPanel = ({
-    lookAtEnabled,
-    setLookAtEnabled,
-    showTarget,
-    setShowTarget,
-    lookAtTarget,
-    setLookAtTarget,
-    resetLookAt,
-    lookAtObject,
-    objectPosition,
-    setObjectPosition,
-    objectScale,
-    setObjectScale,
-    objectRotation,
-    setObjectRotation,
-    resetObject,
-    resetObjectPosition,
-    resetObjectRotation,
-    resetObjectScale,
+  lookAtObject,
 }: {
-    lookAtEnabled: boolean;
-    setLookAtEnabled: (enabled: boolean) => void;
-    showTarget: boolean;
-    setShowTarget: (show: boolean) => void;
-    lookAtTarget: { x: number; y: number; z: number };
-    setLookAtTarget: (target: { x: number; y: number; z: number }) => void;
-    resetLookAt: () => void;
-    lookAtObject: () => void;
-    objectPosition: { x: number; y: number; z: number };
-    setObjectPosition: (position: { x: number; y: number; z: number }) => void;
-    objectScale: { x: number; y: number; z: number };
-    setObjectScale: (scale: { x: number; y: number; z: number }) => void;
-    objectRotation: {
-        x: number;
-        y: number;
-        z: number;
-    };
-    setObjectRotation: (rotation: { x: number; y: number; z: number }) => void;
-    resetObject: () => void;
-    resetObjectPosition: () => void;
-    resetObjectRotation: () => void;
-    resetObjectScale: () => void;
+  lookAtObject: () => void;
 }) => {
-    const tabs = [
-        { id: "object", label: "Object" },
-        // { id: "animation", label: "Animation" },
-        { id: "camera", label: "Camera" },
-    ];
+  const tabs = [
+    { id: "object", label: "Object" },
+    { id: "animation", label: "Animation" },
+    { id: "camera", label: "Camera" },
+    { id: "ground", label: "Ground" },
+    { id: "gizmos", label: "Gizmos" },
+  ];
 
-    const getTabContent = (tabId: string) => {
-        switch (tabId) {
-            case "object":
-                return (
-                    <ObjectTab
-                        {...{
-                            objectPosition,
-                            setObjectPosition,
-                            resetObjectPosition,
-                            objectRotation,
-                            setObjectRotation,
-                            resetObjectRotation,
-                            objectScale,
-                            setObjectScale,
-                            resetObjectScale,
-                            resetObject,
-                        }}
-                    />
-                );
-            case "camera":
-                return (
-                    <CameraTab
-                        {...{
-                            // Look at
-                            lookAtEnabled,
-                            setLookAtEnabled,
-                            showTarget,
-                            setShowTarget,
-                            lookAtTarget,
-                            setLookAtTarget,
-                            resetLookAt,
-                            lookAtObject,
-                        }}
-                    />
-                );
+  const getTabContent = (tabId: string) => {
+    switch (tabId) {
+      case "object":
+        return <ObjectTab />;
+      case "camera":
+        return (
+          <CameraTab
+            {...{
+              lookAtObject,
+            }}
+          />
+        );
 
-            // case "animation":
-            //     return (
-            //         <AnimationTab
-            //             {...{
-            //                 setObjectPosition,
-            //                 setObjectRotation,
-            //                 setCameraFov,
-            //                 setCameraPosition,
-            //                 setLookAtTargetPosition: setLookAtTarget,
-            //             }}
-            //         />
-            //     );
-        }
-    };
+      case "animation":
+        return <AnimationTab />;
+      case "ground":
+        return <GroundTab/>
+      case "gizmos":
+        return <GizmosTab/>
+    }
+  };
 
-    return (
-        <Tabs
-            defaultValue={tabs[0].id}
-            className="max-w-[300px] overflow-hidden"
-        >
-            <div className="max-w-[300px] h-fit overflow-x-scroll">
-                <TabsList>
-                    {tabs.map((tab) => (
-                        <TabsTrigger value={tab.id} key={tab.id}>
-                            {tab.label}
-                        </TabsTrigger>
-                    ))}
-                </TabsList>
-            </div>
-            {tabs.map((tab) => (
-                <TabsContent value={tab.id} key={tab.id}>
-                    {getTabContent(tab.id)}
-                </TabsContent>
-            ))}
-        </Tabs>
-    );
+  return (
+    <Tabs
+      defaultValue={tabs[0].id}
+      className="max-w-[300px] min-w-[300px] overflow-hidden"
+    >
+      <ScrollArea className="w-full">
+        <TabsList className={"mb-4"}>
+          {tabs.map((tab) => (
+            <TabsTrigger value={tab.id} key={tab.id}>
+              {tab.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        <ScrollBar orientation="horizontal" />
+      </ScrollArea>
+
+      {tabs.map((tab) => (
+        <TabsContent value={tab.id} key={tab.id}>
+          {getTabContent(tab.id)}
+        </TabsContent>
+      ))}
+    </Tabs>
+  );
 };

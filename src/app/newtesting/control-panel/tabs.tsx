@@ -1,44 +1,33 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ButtonSetting, CheckboxSetting, SliderSetting } from "./base-ui";
-import { Button } from "@/components/ui/button";
-import { useEffect, useRef, useState } from "react";
-import { Slider } from "@radix-ui/react-slider";
-import { AnimationPreset, animationPresets } from "../animations";
-import { useFrame } from "@react-three/fiber";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog";
-import { useSceneStore } from "../useSceneStore";
+import {Button} from "@/components/ui/button";
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 
-const CameraTab = ({
-    // Look at
-    lookAtEnabled,
-    setLookAtEnabled,
-    showTarget,
-    setShowTarget,
-    setLookAtTarget,
-    resetLookAt,
-    lookAtObject,
-}: {
-    // Look at
-    lookAtEnabled: boolean;
-    setLookAtEnabled: (enabled: boolean) => void;
-    showTarget: boolean;
-    setShowTarget: (show: boolean) => void;
-    setLookAtTarget: (target: { x: number; y: number; z: number }) => void;
-    resetLookAt: () => void;
-    lookAtObject: () => void;
-}) => {
-    const camera = useSceneStore((state) => state.camera.data);
-    const setCamera = useSceneStore((state) => state.camera.setCamera);
-    const resetCamera = useSceneStore((state) => state.camera.resetCamera);
+import {useFrame} from "@react-three/fiber";
+import React, {useEffect, useRef, useState} from "react";
+import {AnimationPreset, animationPresets} from "../animations";
+import {ButtonSetting, CheckboxSetting, SliderSetting} from "./base-ui";
+import {Slider} from "@/components/ui/slider";
+import {CaretLeftIcon, CaretRightIcon, LoopIcon, PauseIcon, PlayIcon, ReloadIcon,} from "@radix-ui/react-icons";
+import {Toggle} from "@/components/ui/toggle";
+import {Input} from "@/components/ui/input";
+import {Progress} from "@/components/ui/progress";
+import {ScrollArea, ScrollBar} from "@/components/ui/scroll-area";
+import {useTestingNewStore} from "@/app/newtesting/page";
 
-    const lookAtTarget = useSceneStore((state) => state.lookAtTarget.data);
+const CameraTab = ({lookAtObject}: { lookAtObject: () => void }) => {
+    const camera = useTestingNewStore()((state) => state.camera.data);
+    const setCamera = useTestingNewStore()((state) => state.camera.setCamera);
+    const setCameraDesiredPosition = useTestingNewStore()(
+        (state) => state.camera.setCameraDesiredPosition
+    );
+    const resetCamera = useTestingNewStore()((state) => state.camera.resetCamera);
+
+    const lookAtTarget = useTestingNewStore()((state) => state.lookAtTarget.data);
+    const setLookAtTarget = useTestingNewStore()(
+        (state) => state.lookAtTarget.setLookAtTarget
+    );
+    const resetLookAtTargetPosition = useTestingNewStore()(
+        (state) => state.lookAtTarget.resetLookAtTargetPosition
+    );
 
     return (
         <div>
@@ -57,12 +46,9 @@ const CameraTab = ({
                         max={10}
                         step={0.1}
                         onChange={(value) =>
-                            // setCameraPosition({ ...cameraPosition, x: value })
-                            setCamera({
-                                desiredPosition: {
-                                    ...camera.desiredPosition,
-                                    x: value,
-                                },
+                            setCameraDesiredPosition({
+                                ...camera.desiredPosition,
+                                x: value,
                             })
                         }
                     />
@@ -108,21 +94,27 @@ const CameraTab = ({
                             })
                         }
                     />
-                    <ButtonSetting onClick={resetCamera}>
-                        Reset Camera
-                    </ButtonSetting>
+                    <ButtonSetting onClick={resetCamera}>Reset Camera</ButtonSetting>
                 </TabsContent>
 
                 <TabsContent value="look-at">
                     <CheckboxSetting
                         label="Enable Look-At"
-                        checked={lookAtEnabled}
-                        onChange={() => setLookAtEnabled(!lookAtEnabled)}
+                        checked={lookAtTarget.isEnabled}
+                        onChange={() => {
+                            setLookAtTarget({
+                                isEnabled: !lookAtTarget.isEnabled,
+                            });
+                        }}
                     />
                     <CheckboxSetting
                         label="Show Target Marker"
-                        checked={showTarget}
-                        onChange={() => setShowTarget(!showTarget)}
+                        checked={lookAtTarget.isShowTargetMarker}
+                        onChange={() =>
+                            setLookAtTarget({
+                                isShowTargetMarker: !lookAtTarget.isShowTargetMarker,
+                            })
+                        }
                     />
                     <SliderSetting
                         label="Target X"
@@ -132,11 +124,13 @@ const CameraTab = ({
                         step={0.1}
                         onChange={(value) =>
                             setLookAtTarget({
-                                ...lookAtTarget.position,
-                                x: value,
+                                position: {
+                                    ...lookAtTarget.position,
+                                    x: value,
+                                },
                             })
                         }
-                        disabled={!lookAtEnabled}
+                        disabled={!lookAtTarget.isEnabled}
                     />
                     <SliderSetting
                         label="Target Y"
@@ -146,11 +140,13 @@ const CameraTab = ({
                         step={0.1}
                         onChange={(value) =>
                             setLookAtTarget({
-                                ...lookAtTarget.position,
-                                y: value,
+                                position: {
+                                    ...lookAtTarget.position,
+                                    y: value,
+                                },
                             })
                         }
-                        disabled={!lookAtEnabled}
+                        disabled={!lookAtTarget.isEnabled}
                     />
                     <SliderSetting
                         label="Target Z"
@@ -160,16 +156,18 @@ const CameraTab = ({
                         step={0.1}
                         onChange={(value) =>
                             setLookAtTarget({
-                                ...lookAtTarget.position,
-                                z: value,
+                                position: {
+                                    ...lookAtTarget.position,
+                                    z: value,
+                                },
                             })
                         }
-                        disabled={!lookAtEnabled}
+                        disabled={!lookAtTarget.isEnabled}
                     />
                     <div className="flex gap-2">
                         <ButtonSetting
-                            onClick={resetLookAt}
-                            disabled={!lookAtEnabled}
+                            onClick={resetLookAtTargetPosition}
+                            disabled={!lookAtTarget.isEnabled}
                         >
                             Reset Target
                         </ButtonSetting>
@@ -184,15 +182,15 @@ const CameraTab = ({
 };
 
 const LookAtTab = ({
-    lookAtEnabled,
-    setLookAtEnabled,
-    showTarget,
-    setShowTarget,
-    lookAtTarget,
-    setLookAtTarget,
-    resetLookAt,
-    lookAtObject,
-}: {
+                       lookAtEnabled,
+                       setLookAtEnabled,
+                       showTarget,
+                       setShowTarget,
+                       lookAtTarget,
+                       setLookAtTarget,
+                       resetLookAt,
+                       lookAtObject,
+                   }: {
     lookAtEnabled: boolean;
     setLookAtEnabled: (enabled: boolean) => void;
     showTarget: boolean;
@@ -220,7 +218,7 @@ const LookAtTab = ({
             min={-5}
             max={5}
             step={0.1}
-            onChange={(value) => setLookAtTarget({ ...lookAtTarget, x: value })}
+            onChange={(value) => setLookAtTarget({...lookAtTarget, x: value})}
             disabled={!lookAtEnabled}
         />
         <SliderSetting
@@ -229,7 +227,7 @@ const LookAtTab = ({
             min={-5}
             max={5}
             step={0.1}
-            onChange={(value) => setLookAtTarget({ ...lookAtTarget, y: value })}
+            onChange={(value) => setLookAtTarget({...lookAtTarget, y: value})}
             disabled={!lookAtEnabled}
         />
         <SliderSetting
@@ -238,7 +236,7 @@ const LookAtTab = ({
             min={-5}
             max={5}
             step={0.1}
-            onChange={(value) => setLookAtTarget({ ...lookAtTarget, z: value })}
+            onChange={(value) => setLookAtTarget({...lookAtTarget, z: value})}
             disabled={!lookAtEnabled}
         />
         <div className="flex gap-2">
@@ -253,10 +251,10 @@ const LookAtTab = ({
 );
 
 const PositionTab = ({
-    objectPosition,
-    setObjectPosition,
-    resetObject,
-}: {
+                         objectPosition,
+                         setObjectPosition,
+                         resetObject,
+                     }: {
     objectPosition: { x: number; y: number; z: number };
     setObjectPosition: (pos: { x: number; y: number; z: number }) => void;
     resetObject: () => void;
@@ -269,9 +267,7 @@ const PositionTab = ({
             min={-5}
             max={5}
             step={0.1}
-            onChange={(value) =>
-                setObjectPosition({ ...objectPosition, x: value })
-            }
+            onChange={(value) => setObjectPosition({...objectPosition, x: value})}
         />
         <SliderSetting
             label="Position Y"
@@ -279,9 +275,7 @@ const PositionTab = ({
             min={-5}
             max={5}
             step={0.1}
-            onChange={(value) =>
-                setObjectPosition({ ...objectPosition, y: value })
-            }
+            onChange={(value) => setObjectPosition({...objectPosition, y: value})}
         />
         <SliderSetting
             label="Position Z"
@@ -289,19 +283,17 @@ const PositionTab = ({
             min={-5}
             max={5}
             step={0.1}
-            onChange={(value) =>
-                setObjectPosition({ ...objectPosition, z: value })
-            }
+            onChange={(value) => setObjectPosition({...objectPosition, z: value})}
         />
         <ButtonSetting onClick={resetObject}>Reset Object</ButtonSetting>
     </div>
 );
 
 const ScaleTab = ({
-    objectScale,
-    setObjectScale,
-    resetObject,
-}: {
+                      objectScale,
+                      setObjectScale,
+                      resetObject,
+                  }: {
     objectScale: { x: number; y: number; z: number };
     setObjectScale: (scale: { x: number; y: number; z: number }) => void;
     resetObject: () => void;
@@ -314,7 +306,7 @@ const ScaleTab = ({
             min={0.1}
             max={3}
             step={0.1}
-            onChange={(value) => setObjectScale({ ...objectScale, x: value })}
+            onChange={(value) => setObjectScale({...objectScale, x: value})}
         />
         <SliderSetting
             label="Scale Y"
@@ -322,7 +314,7 @@ const ScaleTab = ({
             min={0.1}
             max={3}
             step={0.1}
-            onChange={(value) => setObjectScale({ ...objectScale, y: value })}
+            onChange={(value) => setObjectScale({...objectScale, y: value})}
         />
         <SliderSetting
             label="Scale Z"
@@ -330,17 +322,17 @@ const ScaleTab = ({
             min={0.1}
             max={3}
             step={0.1}
-            onChange={(value) => setObjectScale({ ...objectScale, z: value })}
+            onChange={(value) => setObjectScale({...objectScale, z: value})}
         />
         <ButtonSetting onClick={resetObject}>Reset Object</ButtonSetting>
     </div>
 );
 
 const RotationTab = ({
-    objectRotation,
-    setObjectRotation,
-    resetObject,
-}: {
+                         objectRotation,
+                         setObjectRotation,
+                         resetObject,
+                     }: {
     objectRotation: {
         x: number;
         y: number;
@@ -432,16 +424,10 @@ const RotationTab = ({
                     >
                         Y -10°
                     </ButtonSetting>
-                    <ButtonSetting
-                        size="small"
-                        onClick={() => rotateObject("z", 10)}
-                    >
+                    <ButtonSetting size="small" onClick={() => rotateObject("z", 10)}>
                         Z +10°
                     </ButtonSetting>
-                    <ButtonSetting
-                        size="small"
-                        onClick={() => rotateObject("z", -10)}
-                    >
+                    <ButtonSetting size="small" onClick={() => rotateObject("z", -10)}>
                         Z -10°
                     </ButtonSetting>
                 </div>
@@ -451,62 +437,55 @@ const RotationTab = ({
     );
 };
 
-const ObjectTab = ({
-    objectPosition,
-    setObjectPosition,
-    resetObjectPosition,
-    objectRotation,
-    setObjectRotation,
-    resetObjectRotation,
-    objectScale,
-    setObjectScale,
-    resetObjectScale,
-    resetObject,
-}: {
-    objectPosition: { x: number; y: number; z: number };
-    setObjectPosition: (pos: { x: number; y: number; z: number }) => void;
-    resetObjectPosition: () => void;
-    objectRotation: {
-        x: number;
-        y: number;
-        z: number;
+const ObjectTab = () => {
+    const object = useTestingNewStore()((state) => state.object.data);
+    const setObject = useTestingNewStore()((state) => state.object.setObject);
+    const resetObject = useTestingNewStore()((state) => state.object.resetObject);
+    const objectDefaults = useTestingNewStore()((state) => state.object.getDefaults)();
+
+    const resetObjectPosition = () => {
+        setObject({position: objectDefaults.position});
     };
-    setObjectRotation: (rotation: { x: number; y: number; z: number }) => void;
-    resetObjectRotation: () => void;
-    objectScale: { x: number; y: number; z: number };
-    setObjectScale: (scale: { x: number; y: number; z: number }) => void;
-    resetObjectScale: () => void;
-    resetObject: () => void;
-}) => {
+    const resetObjectRotation = () => {
+        setObject({rotation: objectDefaults.rotation});
+    };
+    const resetObjectScale = () => {
+        setObject({scale: objectDefaults.scale});
+    };
+
     return (
-        <div>
+        <div className={"border p-2"}>
             <h3 className="font-bold mb-2">Object</h3>
-            <Tabs defaultValue="model">
-                <TabsList>
-                    <TabsTrigger value="model">Model</TabsTrigger>
-                    <TabsTrigger value="position">Position</TabsTrigger>
-                    <TabsTrigger value="rotation">Rotation</TabsTrigger>
-                    <TabsTrigger value="scale">Scale</TabsTrigger>
-                </TabsList>
+            <Tabs defaultValue="model" className="w-full border p-2">
+               <ScrollArea className={"w-full"}>
+                   <TabsList className={"mb-4"}>
+                       <TabsTrigger value="model">Model</TabsTrigger>
+                       <TabsTrigger value="position">Position</TabsTrigger>
+                       <TabsTrigger value="rotation">Rotation</TabsTrigger>
+                       <TabsTrigger value="scale">Scale</TabsTrigger>
+                   </TabsList>
+                   <ScrollBar orientation="horizontal" />
+               </ScrollArea>
+
                 <TabsContent value="model">Mesh</TabsContent>
                 <TabsContent value="position">
                     <PositionTab
-                        objectPosition={objectPosition}
-                        setObjectPosition={setObjectPosition}
+                        objectPosition={object.position}
+                        setObjectPosition={(data) => setObject({position: data})}
                         resetObject={resetObjectPosition}
                     />
                 </TabsContent>
                 <TabsContent value="rotation">
                     <RotationTab
-                        objectRotation={objectRotation}
-                        setObjectRotation={setObjectRotation}
+                        objectRotation={object.rotation}
+                        setObjectRotation={(data) => setObject({rotation: data})}
                         resetObject={resetObjectRotation}
                     />
                 </TabsContent>
                 <TabsContent value="scale">
                     <ScaleTab
-                        objectScale={objectScale}
-                        setObjectScale={setObjectScale}
+                        objectScale={object.scale}
+                        setObjectScale={(data) => setObject({scale: data})}
                         resetObject={resetObjectScale}
                     />
                 </TabsContent>
@@ -527,45 +506,13 @@ export type AnimationKeyframe = {
     };
 };
 
-/**
- * Requires to have a config at t=0 and t=1.
- */
-// const animKeyframes: AnimationKeyframe[] = [
-//   {
-//     t: 0,
-//     config: {
-//       objectRotation: { x: 0, y: 0, z: 0 },
-//       objectPosition: { x: 0, y: 0, z: 0 },
-//       cameraPosition: { x: 3, y: 3, z: 5 },
-//       cameraFov: 50,
-//       lookAtTargetPosition: { x: 0, y: 0, z: 0 },
-//     },
-//   },
-//   {
-//     t: 0.5,
-//     config: {
-//       objectRotation: { x: Math.PI, y: 0, z: 0 },
-//       objectPosition: { x: 0, y: 0, z: 0 },
-//       cameraPosition: { x: 4, y: 3, z: 5 },
-//       cameraFov: 50,
-//       lookAtTargetPosition: { x: 0, y: 0, z: 3 },
-//     },
-//   },
-//   {
-//     t: 1,
-//     config: {
-//       objectRotation: { x: Math.PI * 2, y: 0, z: 0 },
-//       objectPosition: { x: 0, y: 0, z: 0 },
-//       cameraPosition: { x: 5, y: 3, z: 5 },
-//       cameraFov: 50,
-//       lookAtTargetPosition: { x: 5, y: 0, z: 3 },
-//     },
-//   },
-// ];
-
 function lerp(a: number, b: number, t: number) {
     return a + (b - a) * t;
 }
+
+// in freeview
+// in guided lessons
+//  preview, gizmos(if can disable the clicking), animation stepper, option to show hide ground
 
 function interpolateKeyframes(keyframes: AnimationKeyframe[], t: number) {
     // Find the two keyframes t is between
@@ -624,23 +571,14 @@ function interpolateKeyframes(keyframes: AnimationKeyframe[], t: number) {
     };
 }
 
-const AnimationTab = ({
-    setObjectPosition,
-    setObjectRotation,
-    setCameraPosition,
-    setCameraFov,
-    setLookAtTargetPosition,
-}: {
-    setObjectPosition: (pos: { x: number; y: number; z: number }) => void;
-    setObjectRotation: (rotation: { x: number; y: number; z: number }) => void;
-    setCameraPosition: (pos: { x: number; y: number; z: number }) => void;
-    setCameraFov: (fov: number) => void;
-    setLookAtTargetPosition: (target: {
-        x: number;
-        y: number;
-        z: number;
-    }) => void;
-}) => {
+const AnimationTab = () => {
+    const setObjectRotation = useTestingNewStore()(state => state.object.setObjectRotation)
+    const setObjectPosition =  useTestingNewStore()(state => state.object.setObjectPosition)
+    const setCameraPosition = useTestingNewStore()(state => state.camera.setCameraDesiredPosition)
+    const setCameraFov =useTestingNewStore()(state => state.camera.setCameraDesiredFov)
+    const setLookAtTargetPosition =
+        useTestingNewStore()(state => state.lookAtTarget.setLookAtTargetPosition)
+
     const [isAnimationStarted, setIsAnimationStarted] = useState(false);
     const [animationProgress, setAnimationProgress] = useState(0);
     const [steps, setSteps] = useState(10);
@@ -693,124 +631,303 @@ const AnimationTab = ({
         animate(preset.keyFrames, 0);
     };
 
+    const isSelectedPresetFirst =
+        animationPresets[0].id == selectedAnimationPreset.id;
+    const isSelectedPresetLast =
+        animationPresets[animationPresets.length - 1].id ==
+        selectedAnimationPreset.id;
+
     return (
         <div>
             <h3 className="font-bold mb-2">Animation</h3>
-            <Button
-                onClick={() => startAnimation()}
-                disabled={isAnimationStarted}
-            >
-                Start Animation
-            </Button>
-            <Button
-                onClick={() => resetAnimation()}
-                disabled={!isAnimationStarted}
-            >
-                Reset Animation
-            </Button>
-            <div>{animationProgress}</div>
-            <SliderSetting
-                label="Steps"
-                value={steps}
-                min={0}
-                max={20}
-                step={1}
-                onChange={(value) => {
-                    setSteps(value);
-                }}
-                disabled={isAnimationStarted}
-            />
-            <SliderSetting
-                label="Animation Progress"
-                value={animationProgress}
-                min={0}
-                max={1}
-                step={1 / steps}
-                onChange={(value) => {
-                    setAnimationProgress(value);
-                    animate(selectedAnimationPreset.keyFrames, value);
-                }}
-                disabled={!isAnimationStarted}
-            />
+            {/* <Button onClick={() => startAnimation()} disabled={isAnimationStarted}>
+        Start Animation
+      </Button>
+      <Button onClick={() => resetAnimation()} disabled={!isAnimationStarted}>
+        Reset Animation
+      </Button>
+      <div>{animationProgress}</div>
+      <SliderSetting
+        label="Steps"
+        value={steps}
+        min={0}
+        max={20}
+        step={1}
+        onChange={(value) => {
+          setSteps(value);
+        }}
+        disabled={isAnimationStarted}
+      />
+      <SliderSetting
+        label="Animation Progress"
+        value={animationProgress}
+        min={0}
+        max={1}
+        step={1 / steps}
+        onChange={(value) => {
+          setAnimationProgress(value);
+          animate(selectedAnimationPreset.keyFrames, value);
+        }}
+        disabled={!isAnimationStarted}
+      />
 
-            <Button
-                onClick={() => progressAnimation(1 / steps)}
-                disabled={!isAnimationStarted}
-            >
-                Progress Animation
-            </Button>
-            <div className="max-w-[300px] overflow-x-scroll">
-                <ul className="flex">
-                    {animationPresets.map((preset) => (
-                        <li key={preset.id} className="mb-2">
-                            <Button
-                                variant="outline"
-                                onClick={() => {
-                                    updateAnimationPreset(preset);
-                                }}
-                            >
-                                {preset.name}
-                            </Button>
-                            <p className="text-sm text-gray-500">
-                                {preset.desc}
-                            </p>
-                        </li>
-                    ))}
-                </ul>
-            </div>
-            <AnimationPreviewer
-                duration={3}
-                keyframes={selectedAnimationPreset.keyFrames}
-                apply={(state) => {
-                    setObjectRotation(state.objectRotation);
-                    setObjectPosition(state.objectPosition);
-                    setCameraPosition(state.cameraPosition);
-                    setCameraFov(state.cameraFov);
-                    setLookAtTargetPosition(state.lookAtTargetPosition);
-                }}
-            />
+      <Button
+        onClick={() => progressAnimation(1 / steps)}
+        disabled={!isAnimationStarted}
+      >
+        Progress Animation
+      </Button> */}
+            <div className={"p-2 border"}>
+                <div className="max-w-[300px] overflow-x-scroll">
+                    <ul className="flex gap-8">
+                        {animationPresets.map((preset) => {
+                            let hasObjectRotationChanged = false;
+                            let hasObjectPositionChanged = false;
 
-            <Dialog>
-                <DialogTrigger>Open</DialogTrigger>
-                <DialogContent className="min-w-[98vw]">
-                    <DialogHeader>
-                        <DialogTitle>Select animation preset</DialogTitle>
-                        <DialogDescription>
-                            This action cannot be undone. This will permanently
-                            delete your account and remove your data from our
-                            servers.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="flex">
-                        <ul className="flex flex-col gap-2">
-                            {animationPresets.map((preset) => (
-                                <li key={preset.id}>
+                            let hasCameraPositionChanged = false;
+                            let hasLookAtTargetPositionChanged = false;
+
+                            if (preset.keyFrames.length > 0) {
+                                const startState = preset.keyFrames[0];
+
+                                for (let i = 1; i < preset.keyFrames.length; i++) {
+                                    const kf = preset.keyFrames[i];
+                                    if (
+                                        kf.config.objectRotation.x !==
+                                        startState.config.objectRotation.x ||
+                                        kf.config.objectRotation.y !==
+                                        startState.config.objectRotation.y ||
+                                        kf.config.objectRotation.z !==
+                                        startState.config.objectRotation.z
+                                    ) {
+                                        hasObjectRotationChanged = true;
+                                        break; // No need to check further if we found a change
+                                    }
+                                }
+
+                                for (let i = 1; i < preset.keyFrames.length; i++) {
+                                    const kf = preset.keyFrames[i];
+                                    if (
+                                        kf.config.cameraPosition.x !==
+                                        startState.config.cameraPosition.x ||
+                                        kf.config.cameraPosition.y !==
+                                        startState.config.cameraPosition.y ||
+                                        kf.config.cameraPosition.z !==
+                                        startState.config.cameraPosition.z
+                                    ) {
+                                        hasCameraPositionChanged = true;
+                                        break; // No need to check further if we found a change
+                                    }
+                                }
+
+                                for (let i = 1; i < preset.keyFrames.length; i++) {
+                                    const kf = preset.keyFrames[i];
+                                    if (
+                                        kf.config.objectPosition.x !==
+                                        startState.config.objectPosition.x ||
+                                        kf.config.objectPosition.y !==
+                                        startState.config.objectPosition.y ||
+                                        kf.config.objectPosition.z !==
+                                        startState.config.objectPosition.z
+                                    ) {
+                                        hasObjectPositionChanged = true;
+                                        break; // No need to check further if we found a change
+                                    }
+                                }
+
+                                for (let i = 1; i < preset.keyFrames.length; i++) {
+                                    const kf = preset.keyFrames[i];
+                                    if (
+                                        kf.config.lookAtTargetPosition.x !==
+                                        startState.config.lookAtTargetPosition.x ||
+                                        kf.config.lookAtTargetPosition.y !==
+                                        startState.config.lookAtTargetPosition.y ||
+                                        kf.config.lookAtTargetPosition.z !==
+                                        startState.config.lookAtTargetPosition.z
+                                    ) {
+                                        hasLookAtTargetPositionChanged = true;
+                                        break; // No need to check further if we found a change
+                                    }
+                                }
+                            }
+
+                            return (
+                                <li key={preset.id} className="mb-2">
                                     <Button
-                                        variant="outline"
+                                        variant={
+                                            preset.id === selectedAnimationPreset.id
+                                                ? "secondary"
+                                                : "outline"
+                                        }
                                         onClick={() => {
                                             updateAnimationPreset(preset);
                                         }}
                                     >
                                         {preset.name}
                                     </Button>
-                                    <p className="text-sm text-gray-500">
-                                        {preset.desc}
+                                    <p className="text-sm text-gray-500">{preset.desc}</p>
+                                    <p>
+                                        {hasCameraPositionChanged ? "camera moves" : ""}
+                                        {hasObjectRotationChanged ? "object rotates" : ""}
+                                        {hasObjectPositionChanged ? "object moves" : ""}
+                                        {hasLookAtTargetPositionChanged ? "Look at target changes" : ""}
                                     </p>
                                 </li>
-                            ))}
-                        </ul>
+                            );
+                        })}
+                    </ul>
+                </div>
+                <div className="border p-4 flex flex-col items-center">
+                    <div className="flex center items-center gap-1 mb-4 w-full justify-between">
+                        <Button
+                            size={"sm"}
+                            variant={"ghost"}
+                            disabled={isSelectedPresetFirst}
+                            onClick={() =>
+                                setSelectedAnimationPreset((prev) => {
+                                    const selectedPresetIndex = animationPresets.findIndex(
+                                        (it) => it.id == prev.id
+                                    );
+                                    return animationPresets[Math.max(0, selectedPresetIndex - 1)];
+                                })
+                            }
+                        >
+                            <CaretLeftIcon/>
+                        </Button>
+                        {selectedAnimationPreset.name}
+                        <Button
+                            size={"sm"}
+                            variant={"ghost"}
+                            disabled={isSelectedPresetLast}
+                            onClick={() =>
+                                setSelectedAnimationPreset((prev) => {
+                                    const selectedPresetIndex = animationPresets.findIndex(
+                                        (it) => it.id == prev.id
+                                    );
+                                    return animationPresets[
+                                        Math.min(animationPresets.length - 1, selectedPresetIndex + 1)
+                                        ];
+                                })
+                            }
+                        >
+                            <CaretRightIcon/>
+                        </Button>
                     </div>
-                </DialogContent>
-            </Dialog>
+                    <AnimationPreviewer
+                        duration={3}
+                        keyframes={selectedAnimationPreset.keyFrames}
+                        apply={(state) => {
+                            setObjectRotation(state.objectRotation);
+                            setObjectPosition(state.objectPosition);
+                            setCameraPosition(state.cameraPosition);
+                            setCameraFov(state.cameraFov);
+                            setLookAtTargetPosition(state.lookAtTargetPosition);
+                        }}
+                    />
+
+                </div>
+            </div>
+            <div className={"p-4 border mt-4"}>
+
+                <AnimationStepper keyframes={selectedAnimationPreset.keyFrames} apply={(state) => {
+                    setObjectRotation(state.objectRotation);
+                    setObjectPosition(state.objectPosition);
+                    setCameraPosition(state.cameraPosition);
+                    setCameraFov(state.cameraFov);
+                    setLookAtTargetPosition(state.lookAtTargetPosition);
+                }}/>
+            </div>
+
+            {/* <Dialog>
+        <DialogTrigger>Open</DialogTrigger>
+        <DialogContent className="min-w-[98vw]">
+          <DialogHeader>
+            <DialogTitle>Select animation preset</DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. This will permanently delete your
+              account and remove your data from our servers.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex">
+            <ul className="flex flex-col gap-2">
+              {animationPresets.map((preset) => (
+                <li key={preset.id}>
+                  <Button
+                    variant={
+                      preset.id === selectedAnimationPreset.id
+                        ? "secondary"
+                        : "outline"
+                    }
+                    onClick={() => {
+                      updateAnimationPreset(preset);
+                    }}
+                  >
+                    {preset.name}
+                  </Button>
+                  <p className="text-sm text-gray-500">{preset.desc}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </DialogContent>
+      </Dialog> */}
         </div>
     );
 };
 
+function AnimationStepper({keyframes, apply}: {
+    keyframes: AnimationKeyframe[];
+    apply: (state: any) => void;
+}) {
+    const [progress, setProgress] = useState(0);
+    const [steps, setSteps] = useState(12)
+    const stepSize = 1 / steps
+
+    const increaseProgress = (by: number) => {
+        let newProgress = progress + by
+        if (newProgress < 0 ) newProgress = 0;
+        if (newProgress > 1) newProgress = 1;
+
+        setProgress(newProgress);
+        apply(interpolateKeyframes(keyframes, newProgress));
+    }
+
+    return (
+        <div>
+            <Input type={"number"} value={steps} onChange={e => setSteps(parseInt(e.target.value))} />
+            <Progress value={progress * 100}/>
+            <Button size={"sm"} variant={"outline"} disabled={progress == 0} onClick={
+                () => {
+                    increaseProgress(-stepSize)
+                }
+            }>
+                <CaretLeftIcon/>
+            </Button>
+            <Button size={"sm"} variant={"outline"} onClick={
+                () =>{
+                    increaseProgress(-1)
+                }
+            }>
+                <ReloadIcon/>
+            </Button>
+            <Button size={"sm"} variant={"outline"}
+                    disabled={progress == 1}
+                    onClick={
+                        () => {
+                            increaseProgress(stepSize)
+                        }
+                    }>
+                <CaretRightIcon/>
+            </Button>
+        </div>
+    )
+}
+
 function AnimationPlayer({
-    duration = 2, // seconds
-    keyframes,
-    apply,
-}: {
+                             duration = 2, // seconds
+                             keyframes,
+                             apply,
+                         }: {
     duration?: number;
     keyframes: AnimationKeyframe[];
     apply: (state: ReturnType<typeof interpolateKeyframes>) => void;
@@ -836,10 +953,10 @@ function AnimationPlayer({
 }
 
 export function AnimationPreviewer({
-    duration = 3,
-    keyframes,
-    apply,
-}: {
+                                       duration = 3,
+                                       keyframes,
+                                       apply,
+                                   }: {
     duration?: number;
     keyframes: AnimationKeyframe[];
     apply: (state: any) => void;
@@ -865,48 +982,57 @@ export function AnimationPreviewer({
         },
     });
 
-    const handleScrub = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const t = parseFloat(e.target.value);
-        setProgress(t);
-        apply(interpolateKeyframes(keyframes, t));
+    const handleScrub = (value: number) => {
+        setProgress(value);
+        apply(interpolateKeyframes(keyframes, value));
         setPlaying(false);
         startTime.current = null;
     };
 
     return (
-        <div className="">
-            <button
-                onClick={() => {
-                    setPlaying((p) => !p);
-                    if (!playing) startTime.current = null;
-                }}
-            >
-                {playing ? "Pause" : "Play"}
-            </button>
-
-            <button onClick={() => setLoop((l) => !l)}>
-                Loop: {loop ? "On" : "Off"}
-            </button>
-
-            <input
-                type="range"
+        <div className="w-full  flex flex-col">
+            <Slider
                 min={0}
                 max={1}
                 step={0.001}
-                value={progress}
-                onChange={handleScrub}
-                style={{ width: 150 }}
+                value={[progress]}
+                onValueChange={(value) => {
+                    handleScrub(value[0]);
+                }}
+                className="w-full mb-2"
             />
+            <div className="flex items-center justify-between mt-2">
+                <Button
+                    onClick={() => {
+                        setPlaying((p) => !p);
+                        if (!playing) startTime.current = null;
+                    }}
+                    size={"icon"}
+                >
+                    {playing ? <PauseIcon/> : <PlayIcon/>}
+                </Button>
+
+                <Toggle
+                    variant="outline"
+                    aria-label="Toggle loop"
+                    className="w-fit"
+                    pressed={loop}
+                    onPressedChange={setLoop}
+                    size={"sm"}
+                >
+                    <LoopIcon/>
+                </Toggle>
+            </div>
         </div>
     );
 }
 
 export function useAnimationPlayer({
-    duration,
-    loop,
-    playing,
-    onFrame,
-}: {
+                                       duration,
+                                       loop,
+                                       playing,
+                                       onFrame,
+                                   }: {
     duration: number;
     loop: boolean;
     playing: boolean;
@@ -947,12 +1073,48 @@ export function useAnimationPlayer({
     }, [playing, loop]);
 }
 
+const GroundTab = () => {
+    const ground = useTestingNewStore()(state => state.ground)
+
+    return(<div>
+        <h3 className="font-bold mb-2">Ground</h3>
+        <SliderSetting
+            label="Ground Y"
+            value={ground.data.position.y}
+            min={-5}
+            max={5}
+            step={0.1}
+            onChange={(value) => ground.setGroundPosition(
+                {
+                    ...ground.data.position,
+                    y : value
+                }
+            )}
+        />
+        <Button onClick={() => ground.resetGround()}>
+            Reset
+        </Button>
+    </div>)
+}
+
+const GizmosTab = () => {
+   return (<div>
+       <h3 className="font-bold mb-2">Gizmos</h3>
+       <div>
+           <CheckboxSetting label={"Gizmos"} checked={false} onChange={() => {
+           }}/>
+       </div>
+   </div>)
+}
+
 export {
+    AnimationTab,
     CameraTab,
     LookAtTab,
-    PositionTab,
-    ScaleTab,
-    RotationTab,
     ObjectTab,
-    AnimationTab,
+    PositionTab,
+    RotationTab,
+    ScaleTab,
+    GroundTab,
+    GizmosTab
 };
