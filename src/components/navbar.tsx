@@ -115,6 +115,7 @@ const SmallMenu = ({ viewerDesc, exitIcon }: ViewerDesc) => {
             <Link href={"/freeview"}>
               <DropdownMenuItem>Freeview</DropdownMenuItem>
             </Link>
+
             {/* <Link href={"/journey"}>
               <DropdownMenuItem>Resources</DropdownMenuItem>
             </Link> */}
@@ -182,6 +183,8 @@ export default function Navbar() {
   const links = [
     { path: "journey", label: "Journey" },
     { path: "freeview", label: "Freeview" },
+    {path: "newtesting", label: "New Testing" },
+    {path: "newtesting/guided", label: "Guided" },
     // { path: "resources", label: "Resources" },
     // { path: "about", label: "About" },
   ];

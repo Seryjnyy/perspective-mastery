@@ -1,6 +1,15 @@
 "use client";
 import { OrbitControls as OrbitControlsImpl } from "three-stdlib";
-import React, {useRef, useState, useEffect, useMemo, use, ReactNode, createContext, useContext} from "react";
+import React, {
+  useRef,
+  useState,
+  useEffect,
+  useMemo,
+  use,
+  ReactNode,
+  createContext,
+  useContext,
+} from "react";
 import { Canvas, useThree, useFrame } from "@react-three/fiber";
 import {
   OrbitControls,
@@ -21,14 +30,18 @@ import {
   GearIcon,
 } from "@radix-ui/react-icons";
 import { ControlsPanel } from "@/app/newtesting/control-panel/control-panel";
-import {CameraData, createSceneStore, useGlobalSceneStore} from "./useGlobalSceneStore";
+import {
+  CameraData,
+  createSceneStore,
+  useGlobalSceneStore,
+} from "./useGlobalSceneStore";
 
 // Scene with a controllable object group
 const Scene = ({
   objectPosition,
   objectScale,
   objectRotation,
-    groundPosition,
+  groundPosition,
   lookAtTarget,
   showTarget,
 }: {
@@ -79,7 +92,10 @@ const Scene = ({
         </mesh>
       )}
 
-      <gridHelper args={[10, 10]} position={[groundPosition.x, groundPosition.y, groundPosition.z]} />
+      <gridHelper
+        args={[10, 10]}
+        position={[groundPosition.x, groundPosition.y, groundPosition.z]}
+      />
     </>
   );
 };
@@ -123,11 +139,13 @@ const CameraControlsInScene = ({
   cameraFov,
   lookAtTarget,
   lookAtEnabled,
+  isShowGizmos,
 }: {
   cameraPosition: { x: number; y: number; z: number };
   cameraFov: number;
   lookAtTarget: { x: number; y: number; z: number };
   lookAtEnabled: boolean;
+  isShowGizmos: boolean;
 }) => {
   const cameraRef = useRef<THREE.PerspectiveCamera>(null);
   const controlsRef = useRef<OrbitControlsImpl>(null);
@@ -177,60 +195,52 @@ const CameraControlsInScene = ({
       {/* OrbitControls will be disabled when lookAt is enabled */}
       <OrbitControls ref={controlsRef} />
 
-      <GizmoHelper alignment="bottom-right" margin={[80, 80]}>
-        <GizmoViewport
-          axisColors={["red", "green", "blue"]}
-          labelColor="white"
-        />
-      </GizmoHelper>
+      {isShowGizmos && (
+        <GizmoHelper alignment="bottom-right" margin={[80, 80]}>
+          <GizmoViewport
+            axisColors={["red", "green", "blue"]}
+            labelColor="white"
+          />
+        </GizmoHelper>
+      )}
     </>
   );
 };
 
-type ObjectData = {
-  position: { x: number; y: number; z: number };
-  scale: { x: number; y: number; z: number };
-  rotation: { x: number; y: number; z: number };
-};
+type SceneStoreHook = ReturnType<typeof createSceneStore>;
+const SceneStoreContext = createContext<SceneStoreHook | null>(null);
 
-const defaultObjectData: ObjectData = {
-  position: { x: 0, y: 0, z: 0 },
-  scale: { x: 1, y: 1, z: 1 },
-  rotation: { x: 0, y: 0, z: 0 },
-};
-
-type StoreHook = ReturnType<typeof createSceneStore>;
-const StoreContext = createContext<StoreHook | null>(null);
-
-const StoreProvider = ({children}:{children:ReactNode}) => {
-  const storeRef = useRef<StoreHook>();
-  if(!storeRef.current) {
+const SceneStoreProvider = ({ children }: { children: ReactNode }) => {
+  const storeRef = useRef<SceneStoreHook>();
+  if (!storeRef.current) {
     storeRef.current = createSceneStore();
   }
 
-  return <StoreContext.Provider value={storeRef.current}>
-    {children}
-  </StoreContext.Provider>
-}
-
-export default function NewTestingPage (){
   return (
-     <StoreProvider>
-       <CameraControlsScene/>
-     </StoreProvider>
-  )
+    <SceneStoreContext.Provider value={storeRef.current}>
+      {children}
+    </SceneStoreContext.Provider>
+  );
+};
+
+export default function NewTestingPage() {
+  return (
+    <SceneStoreProvider>
+      <CameraControlsScene />
+    </SceneStoreProvider>
+  );
 }
 
 export function useTestingNewStore() {
-  const store = useContext(StoreContext);
-  if (!store) throw new Error('useMyStore must be used within MyStoreProvider');
+  const store = useContext(SceneStoreContext);
+  if (!store) throw new Error("useMyStore must be used within MyStoreProvider");
   return store;
 }
 
 // Main component
-function CameraControlsScene(){
+function CameraControlsScene() {
   // Camera state
-  const camera = useTestingNewStore()(state => state.camera.data)
+  const camera = useTestingNewStore()((state) => state.camera.data);
   const setCamera = useTestingNewStore()((state) => state.camera.setCamera);
 
   const lookAtTarget = useTestingNewStore()((state) => state.lookAtTarget.data);
@@ -241,9 +251,7 @@ function CameraControlsScene(){
   const object = useTestingNewStore()((state) => state.object.data);
   const setObject = useTestingNewStore()((state) => state.object.setObject);
 
-
-  const ground = useTestingNewStore()(state => state.ground.data)
-
+  const ground = useTestingNewStore()((state) => state.ground.data);
 
   // Sync store data with actual camera data
   const handleCameraDataChange = (data: CameraData) => {
@@ -346,44 +354,15 @@ function CameraControlsScene(){
           cameraFov={camera.desiredFov}
           lookAtTarget={lookAtTarget.position}
           lookAtEnabled={lookAtTarget.isEnabled}
+          isShowGizmos={false}
         />
         <CameraDataCollector onCameraDataChange={handleCameraDataChange} />
       </Canvas>
     </div>
   );
-};
+}
 
-function SceneVisualisationPreview({
-  lookAtTargetPosition,
-  cameraPosition,
-  cameraRotation,
-  fov,
-  aspect,
-  near,
-  far,
-  objectPosition,
-  objectRotation,
-  objectScale,
-    groundPosition
-}: {
-  // Look At Target
-  lookAtTargetPosition: { x: number; y: number; z: number };
-  // Camera
-  cameraPosition: { x: number; y: number; z: number };
-  cameraRotation: { x: number; y: number; z: number };
-  fov: number;
-  aspect: number;
-  near: number;
-  far: number;
-  // Object
-  objectPosition: { x: number; y: number; z: number };
-  objectRotation: { x: number; y: number; z: number };
-  objectScale: { x: number; y: number; z: number };
-  // Ground
-  groundPosition: { x: number; y: number; z: number };
-}) {
-  const cameraModelRef = useRef<THREE.Group>(null);
-
+export function SceneVisualisationPreview(props: SceneVisualisationProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const toggleFullscreen = () => {
     setIsFullscreen((prev) => !prev);
@@ -413,74 +392,108 @@ function SceneVisualisationPreview({
           )}
         </Button>
       </div>
-      <Canvas camera={{ position: [6, 2, 3], near: 0.1, far: 40000 }}>
-        <OrbitControls />
-        <ambientLight intensity={1} />
-        <directionalLight
-          intensity={0.4}
-          color={0xffffff}
-          position={[2, 2, 2]}
-        />
-        <mesh
-          position={[
-            lookAtTargetPosition.x,
-            lookAtTargetPosition.y,
-            lookAtTargetPosition.z,
-          ]}
-        >
-          <boxGeometry args={[0.3, 0.3, 0.3]} />
-          <meshBasicMaterial color="blue" />
-        </mesh>
-        <Line
-          points={[
-            [cameraPosition.x, cameraPosition.y, cameraPosition.z],
-            [
-              lookAtTargetPosition.x,
-              lookAtTargetPosition.y,
-              lookAtTargetPosition.z,
-            ],
-          ]}
-          color="yellow"
-          lineWidth={2}
-        />
-
-        <mesh
-          position={[objectPosition.x, objectPosition.y, objectPosition.z]}
-          rotation={[objectRotation.x, objectRotation.y, objectRotation.z]}
-          scale={[objectScale.x, objectScale.y, objectScale.z]}
-        >
-          <boxGeometry args={[1, 1, 1]} />
-          <meshBasicMaterial color="orange" />
-        </mesh>
-        <group
-          ref={cameraModelRef}
-          position={[cameraPosition.x, cameraPosition.y, cameraPosition.z]}
-          rotation={[cameraRotation.x, cameraRotation.y, cameraRotation.z]}
-        >
-          <mesh>
-            <boxGeometry args={[1, 1, 1]} />
-            <meshBasicMaterial color="red" />
-          </mesh>
-          <group rotation={[0, 0, 0]}>
-            <FrustumVisualizer
-              position={[cameraPosition.x, cameraPosition.y, cameraPosition.z]}
-              target={[
-                lookAtTargetPosition.x,
-                lookAtTargetPosition.y,
-                lookAtTargetPosition.z,
-              ]}
-              fov={fov}
-              aspect={aspect}
-              near={near}
-              far={far}
-            />
-          </group>
-        </group>
-        <gridHelper args={[10, 10]} position={[groundPosition.x, groundPosition.y, groundPosition.z]} />
-      </Canvas>
+      <SceneVisualisation {...props}></SceneVisualisation>
     </div>
   );
 }
+
+interface SceneVisualisationProps {
+  // Look At Target
+  lookAtTargetPosition: { x: number; y: number; z: number };
+  // Camera
+  cameraPosition: { x: number; y: number; z: number };
+  cameraRotation: { x: number; y: number; z: number };
+  fov: number;
+  aspect: number;
+  near: number;
+  far: number;
+  // Object
+  objectPosition: { x: number; y: number; z: number };
+  objectRotation: { x: number; y: number; z: number };
+  objectScale: { x: number; y: number; z: number };
+  // Ground
+  groundPosition: { x: number; y: number; z: number };
+}
+
+export const SceneVisualisation = ({
+  lookAtTargetPosition,
+  cameraPosition,
+  cameraRotation,
+  fov,
+  aspect,
+  near,
+  far,
+  objectPosition,
+  objectRotation,
+  objectScale,
+  groundPosition,
+}: SceneVisualisationProps) => {
+  return (
+    <Canvas camera={{ position: [6, 2, 3], near: 0.1, far: 40000 }}>
+      <OrbitControls />
+      <ambientLight intensity={1} />
+      <directionalLight intensity={0.4} color={0xffffff} position={[2, 2, 2]} />
+      <mesh
+        position={[
+          lookAtTargetPosition.x,
+          lookAtTargetPosition.y,
+          lookAtTargetPosition.z,
+        ]}
+      >
+        <boxGeometry args={[0.3, 0.3, 0.3]} />
+        <meshBasicMaterial color="blue" />
+      </mesh>
+      <Line
+        points={[
+          [cameraPosition.x, cameraPosition.y, cameraPosition.z],
+          [
+            lookAtTargetPosition.x,
+            lookAtTargetPosition.y,
+            lookAtTargetPosition.z,
+          ],
+        ]}
+        color="yellow"
+        lineWidth={2}
+      />
+
+      <mesh
+        position={[objectPosition.x, objectPosition.y, objectPosition.z]}
+        rotation={[objectRotation.x, objectRotation.y, objectRotation.z]}
+        scale={[objectScale.x, objectScale.y, objectScale.z]}
+      >
+        <boxGeometry args={[1, 1, 1]} />
+        <meshBasicMaterial color="orange" />
+      </mesh>
+      <group
+        position={[cameraPosition.x, cameraPosition.y, cameraPosition.z]}
+        rotation={[cameraRotation.x, cameraRotation.y, cameraRotation.z]}
+      >
+        <mesh>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshBasicMaterial color="red" />
+        </mesh>
+        <group rotation={[0, 0, 0]}>
+          <FrustumVisualizer
+            position={[cameraPosition.x, cameraPosition.y, cameraPosition.z]}
+            target={[
+              lookAtTargetPosition.x,
+              lookAtTargetPosition.y,
+              lookAtTargetPosition.z,
+            ]}
+            fov={fov}
+            aspect={aspect}
+            near={near}
+            far={far}
+          />
+        </group>
+      </group>
+      <gridHelper
+        args={[10, 10]}
+        position={[groundPosition.x, groundPosition.y, groundPosition.z]}
+      />
+    </Canvas>
+  );
+};
 
 function FrustumVisualizer({
   position,
@@ -514,8 +527,9 @@ function FrustumVisualizer({
   );
 }
 
-export{
-    Scene,
-    CameraDataCollector,
-    CameraControlsInScene
-}
+export {
+  Scene,
+  CameraDataCollector,
+  CameraControlsInScene,
+  SceneStoreProvider,
+};
