@@ -24,8 +24,8 @@ const defaultLights: Light[] = [
     },
 ];
 
-const boxRotationYAxisCameraAbove: AnimationPresetLocalModel = {
-    id: "3190e085-1d56-4ae4-91ef-861241d14496",
+const cylinderRotationZAxisCameraAbove: AnimationPresetLocalModel = {
+    id: "b2cfab75-c4f7-468d-aaa8-c9eddeb99d44",
     animationPresetData: {
         animationData: {
             keyframes: [
@@ -42,7 +42,7 @@ const boxRotationYAxisCameraAbove: AnimationPresetLocalModel = {
                     config: {
                         ...unchangingData,
                         cameraPosition: { x: 2, y: 3, z: 2 },
-                        objectRotation: { x: 0, y: Math.PI, z: 0 },
+                        objectRotation: { x: 0, y: 0, z: Math.PI },
                     },
                 },
             ],
@@ -50,7 +50,7 @@ const boxRotationYAxisCameraAbove: AnimationPresetLocalModel = {
         modelData: {
             type: "local",
             model: {
-                source: "cube",
+                source: "cylinder",
             },
         },
         groundData: {
@@ -67,8 +67,8 @@ const boxRotationYAxisCameraAbove: AnimationPresetLocalModel = {
         },
     },
     metadata: {
-        name: "Box rotate - y axis - camera above",
-        desc: "Box rotates on the y axis, with the camera above the box",
+        name: "Cylinder rotate - y axis - camera above",
+        desc: "Cylinder rotates on the z axis, with the camera above the box",
         createdAt: "2025-06-11T13:00:00.000Z",
         difficulty: "easy",
         recommendedSteps: 10,
@@ -78,7 +78,7 @@ const boxRotationYAxisCameraAbove: AnimationPresetLocalModel = {
 };
 
 const boxRotationYAxisCameraLevel = produce(
-    boxRotationYAxisCameraAbove,
+    cylinderRotationZAxisCameraAbove,
     (draft) => {
         draft.id = "b35acf68-49bf-425e-8635-782f6c1c1f37";
         draft.metadata.name = "Box rotate - y axis - camera level";
@@ -108,7 +108,7 @@ const boxRotationYAxisCameraLevel = produce(
 );
 
 const boxRotationYAxisCameraBelow = produce(
-    boxRotationYAxisCameraAbove,
+    cylinderRotationZAxisCameraAbove,
     (draft) => {
         draft.id = "b2cfab75-c4f7-468d-aaa8-c9eddeb99d44";
         draft.metadata.name = "Box rotate - y axis - camera below";
@@ -137,8 +137,8 @@ const boxRotationYAxisCameraBelow = produce(
     }
 );
 
-export const boxRotationsYaxis = [
-    boxRotationYAxisCameraAbove,
+export const cylinderRotationsZaxis = [
+    cylinderRotationZAxisCameraAbove,
     boxRotationYAxisCameraLevel,
     boxRotationYAxisCameraBelow,
 ];
