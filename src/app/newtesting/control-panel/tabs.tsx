@@ -852,6 +852,8 @@ const AnimationTab = () => {
       <div className={"p-4 border mt-4"}>
         <AnimationStepper
           keyframes={selectedAnimationPreset.keyFrames}
+          recommendedSteps={12}
+          canChangeSteps={true}
           apply={(state) => {
             setObjectRotation(state.objectRotation);
             setObjectPosition(state.objectPosition);
@@ -899,63 +901,79 @@ const AnimationTab = () => {
   );
 };
 
-function AnimationStepper({
+export function AnimationStepper({
   keyframes,
   apply,
+  recommendedSteps,
+  canChangeSteps,
+  onProgressChange = () => {},
+  enabled = true,
 }: {
   keyframes: AnimationKeyframe[];
+  recommendedSteps: number;
+  canChangeSteps: boolean;
+  onProgressChange?: (completed: boolean) => void;
   apply: (state: any) => void;
+  enabled?: boolean;
 }) {
-  const [progress, setProgress] = useState(0);
-  const [steps, setSteps] = useState(12);
-  const stepSize = 1 / steps;
+  const [steps, setSteps] = useState(recommendedSteps);
+  const [step, setStep] = useState(0);
 
-  const increaseProgress = (by: number) => {
-    let newProgress = progress + by;
-    if (newProgress < 0) newProgress = 0;
-    if (newProgress > 1) newProgress = 1;
+  const updateStep = (by: number) => {
+    let newStep = step + by;
+    if (newStep < 0) newStep = 0;
+    if (newStep > steps) newStep = steps;
 
-    setProgress(newProgress);
+    setStep(newStep);
+    const newProgress = newStep / steps;
+
+    onProgressChange(newProgress === 1);
+
     apply(interpolateKeyframes(keyframes, newProgress));
   };
 
   return (
-    <div>
-      <Input
-        type={"number"}
-        value={steps}
-        onChange={(e) => setSteps(parseInt(e.target.value))}
-      />
-      <Progress value={progress * 100} />
-      <Button
-        size={"sm"}
-        variant={"outline"}
-        disabled={progress == 0}
-        onClick={() => {
-          increaseProgress(-stepSize);
-        }}
-      >
-        <CaretLeftIcon />
-      </Button>
-      <Button
-        size={"sm"}
-        variant={"outline"}
-        onClick={() => {
-          increaseProgress(-1);
-        }}
-      >
-        <ReloadIcon />
-      </Button>
-      <Button
-        size={"sm"}
-        variant={"outline"}
-        disabled={progress == 1}
-        onClick={() => {
-          increaseProgress(stepSize);
-        }}
-      >
-        <CaretRightIcon />
-      </Button>
+    <div className="max-w-[200px] flex flex-col gap-2">
+      {canChangeSteps && (
+        <Input
+          type={"number"}
+          value={steps}
+          onChange={(e) => setSteps(parseInt(e.target.value))}
+        />
+      )}
+      <Progress value={(step / steps) * 100} />
+      <div className="flex flex-row gap-2 w-full justify-between">
+        <Button
+          size={"sm"}
+          variant={"outline"}
+          disabled={step == 0 || !enabled}
+          onClick={() => {
+            updateStep(-1);
+          }}
+        >
+          <CaretLeftIcon />
+        </Button>
+        <Button
+          size={"sm"}
+          variant={"ghost"}
+          disabled={!enabled}
+          onClick={() => {
+            updateStep(-steps);
+          }}
+        >
+          <ReloadIcon />
+        </Button>
+        <Button
+          size={"sm"}
+          variant={"outline"}
+          disabled={step == steps || !enabled}
+          onClick={() => {
+            updateStep(1);
+          }}
+        >
+          <CaretRightIcon />
+        </Button>
+      </div>
     </div>
   );
 }
@@ -993,29 +1011,40 @@ export function AnimationPreviewer({
   duration = 3,
   keyframes,
   apply,
+  autoPlay = true,
 }: {
   duration?: number;
   keyframes: AnimationKeyframe[];
   apply: (state: any) => void;
+  autoPlay?: boolean;
 }) {
-  const [playing, setPlaying] = useState(false);
+  const [playing, setPlaying] = useState(autoPlay);
   const [progress, setProgress] = useState(0);
   const [loop, setLoop] = useState(true);
-  const startTime = useRef<number | null>(null);
+  const [animationId, setAnimationId] = useState("");
+  // const startTime = useRef<number | null>(null);
 
   useEffect(() => {
-    setPlaying(false);
-    setProgress(0);
-    startTime.current = null;
+    // setPlaying(false);
+    // setProgress(0);
+    // startTime.current = null;
+    setAnimationId(Date.now().toString());
   }, [keyframes]);
+
   useAnimationPlayer({
     duration: duration,
     loop,
     playing,
+    animationId: animationId,
     onFrame: (t) => {
       setProgress(t);
+      console.log(`${animationId} - ${keyframes.length}`);
+      if (keyframes.length === 0) return;
       const result = interpolateKeyframes(keyframes, t);
       apply(result); // you send the result to your mesh however you like
+      if (t === 1 && !loop) {
+        setPlaying(false);
+      }
     },
   });
 
@@ -1023,7 +1052,7 @@ export function AnimationPreviewer({
     setProgress(value);
     apply(interpolateKeyframes(keyframes, value));
     setPlaying(false);
-    startTime.current = null;
+    // startTime.current = null;
   };
 
   return (
@@ -1042,7 +1071,7 @@ export function AnimationPreviewer({
         <Button
           onClick={() => {
             setPlaying((p) => !p);
-            if (!playing) startTime.current = null;
+            // if (!playing) startTime.current = null;
           }}
           size={"icon"}
         >
@@ -1069,14 +1098,17 @@ export function useAnimationPlayer({
   loop,
   playing,
   onFrame,
+  animationId,
 }: {
   duration: number;
   loop: boolean;
   playing: boolean;
   onFrame: (progress: number) => void;
+  animationId: string;
 }) {
   const startTime = useRef<number | null>(null);
   const frameId = useRef<number>();
+  const frameAnimationId = useRef<string>();
 
   const tick = (now: number) => {
     if (!playing) return;
@@ -1107,7 +1139,7 @@ export function useAnimationPlayer({
     }
 
     return () => cancelAnimationFrame(frameId.current!);
-  }, [playing, loop]);
+  }, [playing, loop, animationId]);
 }
 
 const GroundTab = () => {

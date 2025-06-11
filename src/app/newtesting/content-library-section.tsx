@@ -1,8 +1,6 @@
 "use client";
 
-import type React, { ReactNode } from "react";
-
-import { useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import {
   Heart,
   ThumbsUp,
@@ -14,6 +12,8 @@ import {
   Eye,
   RotateCcw,
   Star,
+  Check,
+  Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -33,6 +33,10 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Checkbox } from "@/components/ui/checkbox";
+import { AnimationPresetLocalModel, testAnimationPresets } from "./types";
+import { useRouter } from "next/navigation";
+import modelRepo from "./model-repo";
+import { animationPresetRepo } from "./animation-preset-repo";
 
 // Mock data
 const libraryItems = [
@@ -153,18 +157,23 @@ const propertyIcons = {
 };
 
 const difficultyColors = {
-  Easy: "bg-green-100 text-green-800",
-  Medium: "bg-yellow-100 text-yellow-800",
-  Hard: "bg-orange-100 text-orange-800",
-  "Extra Hard": "bg-red-100 text-red-800",
+  easy: "bg-green-100 text-green-800",
+  medium: "bg-yellow-100 text-yellow-800",
+  hard: "bg-orange-100 text-orange-800",
+  "extra hard": "bg-red-100 text-red-800",
 };
 
 export default function ContentLibrarySection({
   children,
+  selectedAnimationPreset,
+  setSelectedAnimationPreset,
 }: {
   children: ReactNode;
+  selectedAnimationPreset: AnimationPresetLocalModel | null;
+  setSelectedAnimationPreset: (
+    preset: AnimationPresetLocalModel | null
+  ) => void;
 }) {
-  const [selectedItem, setSelectedItem] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState("library");
   const [sortBy, setSortBy] = useState("recent");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -172,9 +181,7 @@ export default function ContentLibrarySection({
   const [selectedDifficulties, setSelectedDifficulties] = useState<string[]>(
     []
   );
-
-  const currentItems = activeTab === "library" ? libraryItems : communityItems;
-
+  const router = useRouter();
   const sortOptions = {
     library: [
       { value: "recent", label: "Used Recently" },
@@ -196,17 +203,26 @@ export default function ContentLibrarySection({
     "Look at Target",
     "Object Rotates",
   ];
-  const allDifficulties = ["Easy", "Medium", "Hard", "Extra Hard"];
+  const allDifficulties = ["easy", "medium", "hard", "extra hard"];
 
-  const toggleFavorite = (id: number, e: React.MouseEvent) => {
+  const toggleFavorite = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     // Handle favorite toggle logic here
   };
 
-  const toggleUpvote = (id: number, e: React.MouseEvent) => {
+  const toggleUpvote = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     // Handle upvote logic here
   };
+
+  useEffect(() => {
+    const animationPresets = animationPresetRepo.getAnimationPresets();
+    if (selectedAnimationPreset == null && animationPresets.length > 0) {
+      setSelectedAnimationPreset(animationPresets[0]);
+    }
+  }, [selectedAnimationPreset]);
+
+  const canUpvote = false;
 
   return (
     <div className="h-[calc(100vh-4rem)] flex">
@@ -225,7 +241,7 @@ export default function ContentLibrarySection({
           >
             <TabsList className="grid w-full grid-cols-2 mb-4">
               <TabsTrigger value="library">My Library</TabsTrigger>
-              <TabsTrigger value="community">Community</TabsTrigger>
+              {/* <TabsTrigger value="community">Community</TabsTrigger> */}
             </TabsList>
 
             <div className="flex gap-4 mb-6">
@@ -332,24 +348,26 @@ export default function ContentLibrarySection({
 
             <TabsContent
               value="library"
-              className="flex-1 space-y-4 overflow-y-auto"
+              className="flex-1 space-y-4 overflow-y-auto p-2"
             >
-              {libraryItems.map((item) => (
+              {testAnimationPresets.map((item) => (
                 <Card
                   key={item.id}
                   className={`cursor-pointer transition-all hover:shadow-md ${
-                    selectedItem === item.id
+                    selectedAnimationPreset?.id === item.id
                       ? "ring-2 ring-primary bg-primary/5"
                       : ""
                   }`}
-                  onClick={() => setSelectedItem(item.id)}
+                  onClick={() => setSelectedAnimationPreset(item)}
                 >
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <h3 className="font-semibold text-lg">{item.title}</h3>
+                        <h3 className="font-semibold text-lg">
+                          {item.metadata.name}
+                        </h3>
                         <p className="text-sm text-muted-foreground mt-1">
-                          {item.description}
+                          {item.metadata.desc}
                         </p>
                       </div>
                       <Button
@@ -360,7 +378,9 @@ export default function ContentLibrarySection({
                       >
                         <Heart
                           className={`w-4 h-4 ${
-                            item.isFavorite ? "fill-red-500 text-red-500" : ""
+                            item.metadata.isFavorite
+                              ? "fill-red-500 text-red-500"
+                              : ""
                           }`}
                         />
                       </Button>
@@ -368,16 +388,17 @@ export default function ContentLibrarySection({
                   </CardHeader>
                   <CardContent className="pt-0">
                     <div className="flex flex-wrap gap-2 mb-3">
-                      {item.properties.map((property) => {
-                        const Icon =
-                          propertyIcons[property as keyof typeof propertyIcons];
+                      {item.metadata.tags.map((property) => {
+                        // TODO: Add icons
+                        // const Icon =
+                        //   propertyIcons[property as keyof typeof propertyIcons];
                         return (
                           <Badge
                             key={property}
                             variant="secondary"
                             className="flex items-center gap-1"
                           >
-                            <Icon className="w-3 h-3" />
+                            {/* <Icon className="w-3 h-3" /> */}
                             {property}
                           </Badge>
                         );
@@ -389,32 +410,40 @@ export default function ContentLibrarySection({
                         <Badge
                           className={
                             difficultyColors[
-                              item.difficulty as keyof typeof difficultyColors
+                              item.metadata
+                                .difficulty as keyof typeof difficultyColors
                             ]
                           }
                         >
-                          {item.difficulty}
+                          {item.metadata.difficulty}
                         </Badge>
-                        {item.lastUsed && (
+                        {item.metadata.lastUsedAt && (
                           <span className="flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
-                            {item.lastUsed}
+                            {item.metadata.lastUsedAt.toLocaleDateString()}
                           </span>
                         )}
+
+                        <div className="flex items-center gap-1 text-emerald-500">
+                          <Check className="w-3 h-3" />
+                          <span>09/06/2025</span>
+                        </div>
                       </div>
 
-                      <div className="flex items-center gap-4">
-                        <span>{item.dateCreated}</span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => toggleUpvote(item.id, e)}
-                          className="flex items-center gap-1 h-auto p-1"
-                        >
-                          <ThumbsUp className="w-3 h-3" />
-                          {item.upvotes}
-                        </Button>
-                      </div>
+                      {canUpvote && (
+                        <div className="flex items-center gap-4">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => toggleUpvote(item.id, e)}
+                            className="flex items-center gap-1 h-auto p-1"
+                          >
+                            <ThumbsUp className="w-3 h-3" />
+                            {/* TODO: Add upvotes */}
+                            {/* {item.metadata.upvotes} */}
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -425,7 +454,7 @@ export default function ContentLibrarySection({
               value="community"
               className="flex-1 space-y-4 overflow-y-auto"
             >
-              {communityItems.map((item) => (
+              {/* {communityItems.map((item) => (
                 <Card
                   key={item.id}
                   className={`cursor-pointer transition-all hover:shadow-md ${
@@ -509,15 +538,28 @@ export default function ContentLibrarySection({
                     </div>
                   </CardContent>
                 </Card>
-              ))}
+              ))} */}
             </TabsContent>
           </Tabs>
         </div>
 
         {/* Bottom Action Button */}
         <div className="p-6 border-t">
-          <Button className="w-full" disabled={!selectedItem} size="lg">
-            {selectedItem ? "Use Selected Item" : "Select an Item to Continue"}
+          <Button
+            className="w-full"
+            disabled={!selectedAnimationPreset}
+            size="lg"
+            onClick={() => {
+              if (selectedAnimationPreset) {
+                // setSelectedAnimationPreset(null);
+                // TODO
+                router.push(`guided/${selectedAnimationPreset.id}`);
+              }
+            }}
+          >
+            {selectedAnimationPreset
+              ? "Use Selected Item"
+              : "Select an Item to Continue"}
           </Button>
         </div>
       </div>

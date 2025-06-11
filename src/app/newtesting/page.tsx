@@ -33,8 +33,13 @@ import { ControlsPanel } from "@/app/newtesting/control-panel/control-panel";
 import {
   CameraData,
   createSceneStore,
+  LookAtTargetData,
+  ObjectData,
   useGlobalSceneStore,
 } from "./useGlobalSceneStore";
+import SceneVisualisation, {
+  SceneVisualisationProps,
+} from "./preview/scene-visualisation";
 
 // Scene with a controllable object group
 const Scene = ({
@@ -53,7 +58,6 @@ const Scene = ({
   showTarget?: boolean;
 }) => {
   const groupRef = useRef<THREE.Group>(null);
-  const boxRef = useRef<THREE.Mesh>(null);
 
   // Apply position and scale to the group
   useEffect(() => {
@@ -74,10 +78,7 @@ const Scene = ({
 
       {/* Controllable group that can contain any mesh/models */}
       <group ref={groupRef}>
-        <mesh
-          ref={boxRef}
-          rotation={[objectRotation.x, objectRotation.y, objectRotation.z]}
-        >
+        <mesh rotation={[objectRotation.x, objectRotation.y, objectRotation.z]}>
           <boxGeometry args={[2, 2, 2]} />
           <meshBasicMaterial color={"#33ff20"} opacity={0} transparent />
           <Edges scale={1} threshold={10} color="red" />
@@ -296,32 +297,60 @@ function CameraControlsScene() {
     // });
   };
 
+  // const model = useMemo(() => {
+  //   const modelData = animationPreset.animationPresetData.modelData;
+  //   return modelRepo.getModel(
+  //     modelData.model.source,
+  //     modelData.position,
+  //     modelData.scale,
+  //     modelData.rotation
+  //   );
+  // }, [animationPreset]);
+
+  // const groundModel = useMemo(() => {
+  //   const groundData = animationPreset.animationPresetData.groundData;
+  //   return modelRepo.getGroundModel(
+  //     groundData.model,
+  //     groundData.position,
+  //     groundData.scale,
+  //     groundData.rotation
+  //   );
+  // }, [animationPreset]);
+
+  // const lookAtTargetModel = useMemo(() => {
+  //   const lookAtTargetData =
+  //     animationPreset.animationPresetData.lookAtTargetData;
+  //   return modelRepo.getLookAtTargetModel(
+  //     lookAtTargetData.model,
+  //     lookAtTargetData.position,
+  //     lookAtTargetData.scale,
+  //     lookAtTargetData.rotation
+  //   );
+  // }, [animationPreset]);
+
+  // const staticBackgroundModels = useMemo(() => {
+  //   const staticBackgroundData =
+  //     animationPreset.animationPresetData.staticBackground;
+  //   const models = staticBackgroundData.models.map((model) =>
+  //     modelRepo.getModel(
+  //       model.model.source,
+  //       model.position,
+  //       model.scale,
+  //       model.rotation
+  //     )
+  //   );
+  //   return <group>{models}</group>;
+  // }, [animationPreset]);
+
   return (
     <div className="w-full h-[90vh] relative">
       {/* Data Info Panel */}
       <div className="absolute top-2 left-2 bg-black/70 text-white p-3 rounded-md font-mono text-xs max-w-[300px] z-10">
-        <Tabs defaultValue="camera">
-          <TabsList>
-            <TabsTrigger value="camera">Camera</TabsTrigger>
-            <TabsTrigger value="object">Object</TabsTrigger>
-            <TabsTrigger value="look-at-target">Look at target</TabsTrigger>
-          </TabsList>
-          <TabsContent value="camera">
-            <DataDisplaySection title="Camera Data">
-              <DataDisplayObject data={camera} />
-            </DataDisplaySection>
-          </TabsContent>
-          <TabsContent value="object">
-            <DataDisplaySection title="Object Data">
-              <DataDisplayObject data={object} />
-            </DataDisplaySection>
-          </TabsContent>
-          <TabsContent value="look-at-target">
-            <DataDisplaySection title="Look At Target Data">
-              <DataDisplayObject data={lookAtTarget} />
-            </DataDisplaySection>
-          </TabsContent>
-        </Tabs>
+        <DataDisplayWindow
+          camera={camera}
+          object={object}
+          lookAtTarget={lookAtTarget}
+        />
       </div>
       <SceneVisualisationPreview
         lookAtTargetPosition={lookAtTarget.position}
@@ -335,6 +364,21 @@ function CameraControlsScene() {
         objectRotation={object.rotation}
         objectScale={object.scale}
         groundPosition={ground.position}
+        model={
+          <mesh>
+            <boxGeometry args={[1, 1, 1]} />
+            <meshBasicMaterial color="orange" />
+          </mesh>
+        }
+        groundModel={<gridHelper args={[10, 10]} />}
+        lookAtTargetModel={
+          <mesh>
+            <boxGeometry args={[0.3, 0.3, 0.3]} />
+            <meshBasicMaterial color="blue" />
+          </mesh>
+        }
+        staticBackgroundModels={<></>}
+        showFrustum={true}
       />
 
       <div className="absolute top-2 right-2 bg-black/70 text-white p-3 rounded-md font-mono z-10 min-w-[250px]">
@@ -397,135 +441,40 @@ export function SceneVisualisationPreview(props: SceneVisualisationProps) {
   );
 }
 
-interface SceneVisualisationProps {
-  // Look At Target
-  lookAtTargetPosition: { x: number; y: number; z: number };
-  // Camera
-  cameraPosition: { x: number; y: number; z: number };
-  cameraRotation: { x: number; y: number; z: number };
-  fov: number;
-  aspect: number;
-  near: number;
-  far: number;
-  // Object
-  objectPosition: { x: number; y: number; z: number };
-  objectRotation: { x: number; y: number; z: number };
-  objectScale: { x: number; y: number; z: number };
-  // Ground
-  groundPosition: { x: number; y: number; z: number };
-}
-
-export const SceneVisualisation = ({
-  lookAtTargetPosition,
-  cameraPosition,
-  cameraRotation,
-  fov,
-  aspect,
-  near,
-  far,
-  objectPosition,
-  objectRotation,
-  objectScale,
-  groundPosition,
-}: SceneVisualisationProps) => {
+export const DataDisplayWindow = ({
+  camera,
+  object,
+  lookAtTarget,
+}: {
+  camera: CameraData;
+  object: ObjectData;
+  lookAtTarget: LookAtTargetData;
+}) => {
   return (
-    <Canvas camera={{ position: [6, 2, 3], near: 0.1, far: 40000 }}>
-      <OrbitControls />
-      <ambientLight intensity={1} />
-      <directionalLight intensity={0.4} color={0xffffff} position={[2, 2, 2]} />
-      <mesh
-        position={[
-          lookAtTargetPosition.x,
-          lookAtTargetPosition.y,
-          lookAtTargetPosition.z,
-        ]}
-      >
-        <boxGeometry args={[0.3, 0.3, 0.3]} />
-        <meshBasicMaterial color="blue" />
-      </mesh>
-      <Line
-        points={[
-          [cameraPosition.x, cameraPosition.y, cameraPosition.z],
-          [
-            lookAtTargetPosition.x,
-            lookAtTargetPosition.y,
-            lookAtTargetPosition.z,
-          ],
-        ]}
-        color="yellow"
-        lineWidth={2}
-      />
-
-      <mesh
-        position={[objectPosition.x, objectPosition.y, objectPosition.z]}
-        rotation={[objectRotation.x, objectRotation.y, objectRotation.z]}
-        scale={[objectScale.x, objectScale.y, objectScale.z]}
-      >
-        <boxGeometry args={[1, 1, 1]} />
-        <meshBasicMaterial color="orange" />
-      </mesh>
-      <group
-        position={[cameraPosition.x, cameraPosition.y, cameraPosition.z]}
-        rotation={[cameraRotation.x, cameraRotation.y, cameraRotation.z]}
-      >
-        <mesh>
-          <boxGeometry args={[1, 1, 1]} />
-          <meshBasicMaterial color="red" />
-        </mesh>
-        <group rotation={[0, 0, 0]}>
-          <FrustumVisualizer
-            position={[cameraPosition.x, cameraPosition.y, cameraPosition.z]}
-            target={[
-              lookAtTargetPosition.x,
-              lookAtTargetPosition.y,
-              lookAtTargetPosition.z,
-            ]}
-            fov={fov}
-            aspect={aspect}
-            near={near}
-            far={far}
-          />
-        </group>
-      </group>
-      <gridHelper
-        args={[10, 10]}
-        position={[groundPosition.x, groundPosition.y, groundPosition.z]}
-      />
-    </Canvas>
+    <Tabs defaultValue="camera">
+      <TabsList>
+        <TabsTrigger value="camera">Camera</TabsTrigger>
+        <TabsTrigger value="object">Object</TabsTrigger>
+        <TabsTrigger value="look-at-target">Look at target</TabsTrigger>
+      </TabsList>
+      <TabsContent value="camera">
+        <DataDisplaySection title="Camera Data">
+          <DataDisplayObject data={camera} />
+        </DataDisplaySection>
+      </TabsContent>
+      <TabsContent value="object">
+        <DataDisplaySection title="Object Data">
+          <DataDisplayObject data={object} />
+        </DataDisplaySection>
+      </TabsContent>
+      <TabsContent value="look-at-target">
+        <DataDisplaySection title="Look At Target Data">
+          <DataDisplayObject data={lookAtTarget} />
+        </DataDisplaySection>
+      </TabsContent>
+    </Tabs>
   );
 };
-
-function FrustumVisualizer({
-  position,
-  target,
-  fov,
-  aspect,
-  near,
-  far,
-}: {
-  position: [number, number, number];
-  target: [number, number, number];
-  fov: number;
-  aspect: number;
-  near: number;
-  far: number;
-}) {
-  const geometry = useMemo(() => {
-    const cam = new THREE.PerspectiveCamera(fov, aspect, near, far);
-    cam.position.set(...position);
-    cam.lookAt(...target);
-    cam.updateMatrixWorld();
-
-    const helper = new THREE.CameraHelper(cam);
-    return helper.geometry;
-  }, [position, target, fov, aspect, near, far]);
-
-  return (
-    <lineSegments geometry={geometry}>
-      <lineBasicMaterial color="orange" />
-    </lineSegments>
-  );
-}
 
 export {
   Scene,
