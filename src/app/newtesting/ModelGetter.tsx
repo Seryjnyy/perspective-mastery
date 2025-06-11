@@ -23,7 +23,7 @@ export default function ModelGetter({
   return (
     <>
       {isPrimitive ? (
-        <PrimitiveModel modelName={modelName} />
+        <PrimitiveModel modelName={modelName} onLoaded={onLoaded} />
       ) : (
         <RemoteModel
           modelName={modelName}
@@ -35,7 +35,17 @@ export default function ModelGetter({
   );
 }
 
-const PrimitiveModel = ({ modelName }: { modelName: string }) => {
+const PrimitiveModel = ({
+  modelName,
+  onLoaded,
+}: {
+  modelName: string;
+  onLoaded?: () => void;
+}) => {
+  useEffect(() => {
+    onLoaded?.();
+  }, [onLoaded]);
+
   return <>{modelRepo.getModel(modelName)}</>;
 };
 
