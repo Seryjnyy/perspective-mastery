@@ -1,52 +1,72 @@
 import { useGLTF } from "@react-three/drei";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import modelRepo from "./model-repo";
 import * as THREE from "three";
 import { useThree } from "@react-three/fiber";
+import { Model } from "./models/model";
+import { Vec3 } from "./useGlobalSceneStore";
+import { Loader } from "./test-model-loading";
 
 export default function ModelGetter({
-  modelName,
+  model,
   onLoaded,
   showBoundingBox = false,
+  position,
+  rotation,
+  scale,
 }: {
-  modelName: string;
+  model?: Model;
   onLoaded?: () => void;
   showBoundingBox?: boolean;
+  position?: Vec3;
+  rotation?: Vec3;
+  scale?: Vec3;
 }) {
-  //   useEffect(() => {
-  //     if (modelName.includes("glb=")) {
-  //       setIsPrimitive(false);
-  //     }
-  //   }, [modelName]);
-  const isPrimitive = !modelName.includes("glb=");
+  position = position || { x: 0, y: 0, z: 0 };
+  rotation = rotation || { x: 0, y: 0, z: 0 };
+  scale = scale || { x: 1, y: 1, z: 1 };
+
+  if (!model) {
+    return null;
+  }
+
+  const requiresFetching = model.source === "remote";
+  const requiresLoading = model.modelUrl !== "";
+  const isPrimitive = !requiresFetching && !requiresLoading;
 
   return (
-    <>
-      {isPrimitive ? (
-        <PrimitiveModel modelName={modelName} onLoaded={onLoaded} />
-      ) : (
-        <RemoteModel
-          modelName={modelName}
-          onLoaded={onLoaded}
-          showBoundingBox={showBoundingBox}
-        />
-      )}
-    </>
+    <Suspense fallback={<Loader />}>
+      <group
+        position={[position.x, position.y, position.z]}
+        rotation={[rotation.x, rotation.y, rotation.z]}
+        scale={[scale.x, scale.y, scale.z]}
+      >
+        {isPrimitive ? (
+          <LocalPrimitiveModel modelId={model.id} onLoaded={onLoaded} />
+        ) : (
+          <RequiresFetchingModel
+            modelUrl={model.modelUrl}
+            onLoaded={onLoaded}
+            showBoundingBox={showBoundingBox}
+          />
+        )}
+      </group>
+    </Suspense>
   );
 }
 
-const PrimitiveModel = ({
-  modelName,
+const LocalPrimitiveModel = ({
+  modelId,
   onLoaded,
 }: {
-  modelName: string;
+  modelId: string;
   onLoaded?: () => void;
 }) => {
   useEffect(() => {
     onLoaded?.();
   }, [onLoaded]);
 
-  return <>{modelRepo.getModel(modelName)}</>;
+  return <>{modelRepo.getLocalModel(modelId)}</>;
 };
 
 /**
@@ -57,16 +77,16 @@ const PrimitiveModel = ({
  *  Followed by the path to the model. "glb=/models/head.glb" or "obj=https:/wwwgoogle.com/models/head.obj"
  * @returns The model.
  */
-const RemoteModel = ({
-  modelName,
+const RequiresFetchingModel = ({
+  modelUrl,
   onLoaded,
   showBoundingBox = false,
 }: {
-  modelName: string;
+  modelUrl: string;
   onLoaded?: () => void;
   showBoundingBox?: boolean;
 }) => {
-  const { scene } = useGLTF(modelName.split("glb=")[1]);
+  const { scene } = useGLTF(modelUrl);
   const modelRef = useRef<THREE.Group>(null);
   const [boundingBox, setBoundingBox] = useState<THREE.Box3 | null>(null);
 
