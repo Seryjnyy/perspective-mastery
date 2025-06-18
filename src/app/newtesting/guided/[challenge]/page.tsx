@@ -1,54 +1,37 @@
 "use client";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import ConfettiCannonButton from "@/components/ui/confetti-cannon-button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { useParams, useRouter } from "next/navigation";
-import { ControlsPanel } from "../../control-panel/control-panel";
-import { Canvas } from "@react-three/fiber";
-import {
-  CameraControlsInScene,
-  CameraDataCollector,
-  DataDisplayWindow,
-  Scene,
-  SceneStoreProvider,
-  useTestingNewStore,
-} from "../../page";
-import { CameraData } from "../../useGlobalSceneStore";
-import { animationPresetRepo } from "../../animation-preset-repo";
-import { AnimationPresetLocalModel } from "../../types";
-import React, { Suspense, useEffect, useMemo, useRef, useState } from "react";
-import { Edges } from "@react-three/drei";
-import { Group } from "three";
-import modelRepo from "../../model-repo";
-import { AnimationStepper } from "../../control-panel/tabs";
 import { DropdownMenuCheckboxItemProps } from "@radix-ui/react-dropdown-menu";
-import { Separator } from "@/components/ui/separator";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   ArrowLeftIcon,
   DotsVerticalIcon,
-  ExitIcon,
   EyeOpenIcon,
 } from "@radix-ui/react-icons";
-import { Button } from "@/components/ui/button";
-import { Check, CheckCircle, CheckIcon, EyeClosed, EyeOff } from "lucide-react";
-import SceneVisualisationPreview from "../../preview/scene-visualisation-preview";
-import { ConfettiButton } from "@/components/ui/confetti";
-import confetti from "canvas-confetti";
-import ConfettiCannonButton from "@/components/ui/confetti-cannon-button";
-import TestModelLoading, { Loader } from "../../test-model-loading";
-import ModelGetter from "../../ModelGetter";
+import { Canvas } from "@react-three/fiber";
+import { Check } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Group } from "three";
+import { animationPresetRepo } from "../../features/animation/animation-preset-repo";
+import { AnimationStepper } from "../../features/animation/components/animation-stepper";
+import SceneVisualisationPreview from "../../features/scene-previewer/scene-visualisation-preview";
+import modelRepo from "../../features/animation/model-repo";
+import ModelGetter from "../../features/scene/components/model-getter";
+import { useModels } from "../../features/scene/models/use-models";
+import {
+  CameraControlsInScene,
+  CameraDataCollector,
+  SceneStoreProvider,
+  useTestingNewStore,
+} from "../../page";
+import { AnimationPresetLocalModel } from "../../types2";
+import { CameraData } from "../../scene-store";
 
 type Checked = DropdownMenuCheckboxItemProps["checked"];
 
@@ -107,6 +90,8 @@ function GuidedChallenge({
 
   const navigate = useRouter();
 
+  const models = useModels();
+
   // Sync store data with actual camera data
   const handleCameraDataChange = (data: CameraData) => {
     setCamera({
@@ -130,24 +115,25 @@ function GuidedChallenge({
       },
     });
     setLookAtTarget({
-      isEnabled: true,
+      mode: "manual",
     });
   };
 
   const model = useMemo(() => {
     const modelData = animationPreset.animationPresetData.modelData;
-    return modelRepo.getModel(
-      modelData.model.source,
-      modelData.position,
-      modelData.scale,
-      modelData.rotation
-    );
+    // return modelRepo.getLocalModel(
+    //   modelData.modelId,
+    //   modelData.position,
+    //   modelData.scale,
+    //   modelData.rotation
+    // );
+    return models.getModel(modelData.modelId);
   }, [animationPreset]);
 
   const groundModel = useMemo(() => {
     const groundData = animationPreset.animationPresetData.groundData;
-    return modelRepo.getGroundModel(
-      groundData.model,
+    return modelRepo.getLocalModel(
+      groundData.model?.modelId ?? "",
       groundData.position,
       groundData.scale,
       groundData.rotation
@@ -158,8 +144,8 @@ function GuidedChallenge({
   const lookAtTargetModel = useMemo(() => {
     const lookAtTargetData =
       animationPreset.animationPresetData.lookAtTargetData;
-    return modelRepo.getLookAtTargetModel(
-      lookAtTargetData.model,
+    return modelRepo.getLocalModel(
+      lookAtTargetData.model.modelId,
       lookAtTargetData.position,
       lookAtTargetData.scale,
       lookAtTargetData.rotation
@@ -170,8 +156,8 @@ function GuidedChallenge({
     const staticBackgroundData =
       animationPreset.animationPresetData.staticBackground;
     const models = staticBackgroundData.models.map((model) =>
-      modelRepo.getModel(
-        model.model.source,
+      modelRepo.getLocalModel(
+        model.modelId,
         model.position,
         model.scale,
         model.rotation
@@ -265,15 +251,20 @@ function GuidedChallenge({
             objectScale={object.scale}
             groundPosition={ground.position}
             model={
-              <Suspense fallback={<Loader />}>
-                <ModelGetter
-                  modelName={
-                    animationPreset.animationPresetData.modelData.model
-                      .source || ""
-                  }
-                  showBoundingBox={true}
-                />
-              </Suspense>
+              <ModelGetter
+                model={model}
+                onLoaded={() => {
+                  setIsModelLoaded(true);
+                }}
+                position={
+                  animationPreset.animationPresetData.modelData.position
+                }
+                rotation={
+                  animationPreset.animationPresetData.modelData.rotation
+                }
+                scale={animationPreset.animationPresetData.modelData.scale}
+                showBoundingBox={true}
+              />
             }
             groundModel={groundModel}
             lookAtTargetModel={lookAtTargetModel}
@@ -447,20 +438,18 @@ function GuidedChallenge({
           groundPosition={ground.position}
           objectRotation={object.rotation}
           lookAtTarget={lookAtTarget.position}
-          showTarget={lookAtTarget.isEnabled && lookAtTarget.isShowTargetMarker}
+          showTarget={lookAtTarget.isShowTargetMarker}
           model={
-            <Suspense fallback={<Loader />}>
-              <ModelGetter
-                modelName={
-                  animationPreset.animationPresetData.modelData.model.source ||
-                  ""
-                }
-                onLoaded={() => {
-                  setIsModelLoaded(true);
-                }}
-                showBoundingBox={true}
-              />
-            </Suspense>
+            <ModelGetter
+              model={model}
+              onLoaded={() => {
+                setIsModelLoaded(true);
+              }}
+              position={animationPreset.animationPresetData.modelData.position}
+              rotation={animationPreset.animationPresetData.modelData.rotation}
+              scale={animationPreset.animationPresetData.modelData.scale}
+              showBoundingBox={true}
+            />
           }
           groundModel={groundModel}
           lookAtTargetModel={lookAtTargetModel}
@@ -472,7 +461,7 @@ function GuidedChallenge({
           cameraPosition={camera.desiredPosition}
           cameraFov={camera.desiredFov}
           lookAtTarget={lookAtTarget.position}
-          lookAtEnabled={lookAtTarget.isEnabled}
+          lookAtMode={lookAtTarget.mode}
           isShowGizmos={false}
         />
         <CameraDataCollector onCameraDataChange={handleCameraDataChange} />
@@ -511,16 +500,17 @@ export const TestingScene = ({
   const groupRef = useRef<Group>(null);
 
   // Apply position and scale to the group
-  useEffect(() => {
-    if (groupRef.current) {
-      groupRef.current.position.set(
-        objectPosition.x,
-        objectPosition.y,
-        objectPosition.z
-      );
-      groupRef.current.scale.set(objectScale.x, objectScale.y, objectScale.z);
-    }
-  }, [objectPosition, objectScale]);
+  // TODO : IDK WHAT THIS DOES ANYMORE
+  // useEffect(() => {
+  //   if (groupRef.current) {
+  //     groupRef.current.position.set(
+  //       objectPosition.x,
+  //       objectPosition.y,
+  //       objectPosition.z
+  //     );
+  //     groupRef.current.scale.set(objectScale.x, objectScale.y, objectScale.z);
+  //   }
+  // }, [objectPosition, objectScale]);
 
   return (
     <>
@@ -531,6 +521,8 @@ export const TestingScene = ({
       {/* Controllable group that can contain any mesh/models */}
       <group
         ref={groupRef}
+        position={[objectPosition.x, objectPosition.y, objectPosition.z]}
+        scale={[objectScale.x, objectScale.y, objectScale.z]}
         rotation={[objectRotation.x, objectRotation.y, objectRotation.z]}
       >
         {model}

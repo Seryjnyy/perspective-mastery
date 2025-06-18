@@ -1,45 +1,43 @@
 "use client";
-import { OrbitControls as OrbitControlsImpl } from "three-stdlib";
-import React, {
-  useRef,
-  useState,
-  useEffect,
-  useMemo,
-  use,
-  ReactNode,
-  createContext,
-  useContext,
-} from "react";
-import { Canvas, useThree, useFrame } from "@react-three/fiber";
-import {
-  OrbitControls,
-  PerspectiveCamera,
-  GizmoHelper,
-  GizmoViewport,
-  Line,
-  Edges,
-} from "@react-three/drei";
-import * as THREE from "three";
-import { DataDisplayObject, DataDisplaySection } from "./data-display/base";
+import { ControlsPanel } from "@/app/newtesting/app/components/control-panel/control-panel";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
   EnterFullScreenIcon,
   ExitFullScreenIcon,
   GearIcon,
 } from "@radix-ui/react-icons";
-import { ControlsPanel } from "@/app/newtesting/control-panel/control-panel";
+import {
+  Edges,
+  GizmoHelper,
+  GizmoViewport,
+  OrbitControls,
+  PerspectiveCamera,
+} from "@react-three/drei";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import * as THREE from "three";
+import { OrbitControls as OrbitControlsImpl } from "three-stdlib";
+import { DataDisplayObject, DataDisplaySection } from "./data-display/base";
+import SceneVisualisation, {
+  SceneVisualisationProps,
+} from "./features/scene-previewer/scene-visualisation";
+import { TestingScene } from "./guided/[challenge]/page";
 import {
   CameraData,
   createSceneStore,
+  LookAtMode,
   LookAtTargetData,
   ObjectData,
-  useGlobalSceneStore,
-} from "./useGlobalSceneStore";
-import SceneVisualisation, {
-  SceneVisualisationProps,
-} from "./preview/scene-visualisation";
+} from "./scene-store";
 
 // Scene with a controllable object group
 const Scene = ({
@@ -134,26 +132,55 @@ const CameraDataCollector = ({
   return null; // This component doesn't render anything itself
 };
 
+// Component to handle camera updates
+//  TODO : idk if this is needed
+//   idk if you need to update the camera aspect,  it seems to work the same without it
+function CameraUpdater() {
+  const { camera, gl, size } = useThree(); // Get camera, renderer, and canvas size from R3F state
+
+  useEffect(() => {
+    // This effect runs whenever the 'size' object changes (i.e., canvas resizes)
+    if (camera instanceof THREE.PerspectiveCamera) {
+      camera.aspect = size.width / size.height;
+      camera.updateProjectionMatrix(); // Always call this after changing camera properties
+      console.log("Camera aspect updated", camera.aspect);
+    }
+    // You might also want to update the renderer's size here if it's not handled by Canvas
+    gl.setSize(size.width, size.height);
+    gl.setPixelRatio(window.devicePixelRatio); // Good practice for sharpness
+  }, [camera, gl, size]); // Re-run effect if camera, renderer, or size changes
+
+  return null; // This component doesn't render anything visually
+}
+
 // Camera controls component for the 3D scene - inside Canvas
 const CameraControlsInScene = ({
   cameraPosition,
   cameraFov,
   lookAtTarget,
-  lookAtEnabled,
+  lookAtMode,
   isShowGizmos,
 }: {
   cameraPosition: { x: number; y: number; z: number };
   cameraFov: number;
   lookAtTarget: { x: number; y: number; z: number };
-  lookAtEnabled: boolean;
+  lookAtMode: LookAtMode;
   isShowGizmos: boolean;
 }) => {
   const cameraRef = useRef<THREE.PerspectiveCamera>(null);
   const controlsRef = useRef<OrbitControlsImpl>(null);
+  const setLookAtTargetPosition = useTestingNewStore()(
+    (state) => state.lookAtTarget.setLookAtTargetPosition
+  );
+  const setCameraPosition = useTestingNewStore()(
+    (state) => state.camera.setCameraDesiredPosition
+  );
 
   // Update camera when controls change
   useEffect(() => {
     if (cameraRef.current) {
+      if (lookAtMode === "orbit") return;
+
       // Set camera position
       cameraRef.current.position.set(
         cameraPosition.x,
@@ -162,7 +189,7 @@ const CameraControlsInScene = ({
       );
 
       // Apply look-at if enabled
-      if (lookAtEnabled) {
+      if (lookAtMode === "manual") {
         cameraRef.current.lookAt(
           lookAtTarget.x,
           lookAtTarget.y,
@@ -174,14 +201,35 @@ const CameraControlsInScene = ({
       cameraRef.current.fov = cameraFov;
       cameraRef.current.updateProjectionMatrix();
     }
-  }, [cameraPosition, cameraFov, lookAtTarget, lookAtEnabled]);
+  }, [cameraPosition, cameraFov, lookAtTarget, lookAtMode]);
 
-  // Disable OrbitControls when look-at is enabled
-  useEffect(() => {
+  useFrame(() => {
     if (controlsRef.current) {
-      controlsRef.current.enabled = !lookAtEnabled;
+      const target = controlsRef.current.target;
+      const position = controlsRef.current.position0;
+      // Copy to state or log, etc.
+      console.log("Current target:", target);
+
+      if (lookAtMode === "orbit") {
+        if (
+          lookAtTarget.x !== target.x ||
+          lookAtTarget.y !== target.y ||
+          lookAtTarget.z !== target.z
+        ) {
+          setLookAtTargetPosition({
+            x: target.x,
+            y: target.y,
+            z: target.z,
+          });
+          setCameraPosition({
+            x: position.x,
+            y: position.y,
+            z: position.z,
+          });
+        }
+      }
     }
-  }, [lookAtEnabled, controlsRef.current]);
+  });
 
   return (
     <>
@@ -193,8 +241,16 @@ const CameraControlsInScene = ({
         near={0.1}
         far={1000}
       />
+      {/* <CameraUpdater /> */}
       {/* OrbitControls will be disabled when lookAt is enabled */}
-      <OrbitControls ref={controlsRef} />
+      {lookAtMode === "orbit" && (
+        <OrbitControls
+          ref={controlsRef}
+          target={
+            new THREE.Vector3(lookAtTarget.x, lookAtTarget.y, lookAtTarget.z)
+          }
+        />
+      )}
 
       {isShowGizmos && (
         <GizmoHelper alignment="bottom-right" margin={[80, 80]}>
@@ -269,16 +325,15 @@ function CameraControlsScene() {
 
   // Look at object position
   const lookAtObject = () => {
-    setLookAtTarget({
-      position: {
-        x: object.position.x,
-        y: object.position.y,
-        z: object.position.z,
-      },
-    });
-    setLookAtTarget({
-      isEnabled: true,
-    });
+    if (lookAtTarget.mode === "manual") {
+      setLookAtTarget({
+        position: {
+          x: object.position.x,
+          y: object.position.y,
+          z: object.position.z,
+        },
+      });
+    }
   };
 
   const rotateObject = (axis: "x" | "y" | "z", degrees: number) => {
@@ -379,25 +434,42 @@ function CameraControlsScene() {
         }
         staticBackgroundModels={<></>}
         showFrustum={true}
+        showGround={true}
       />
 
       <div className="absolute top-2 right-2 bg-black/70 text-white p-3 rounded-md font-mono z-10 min-w-[250px]">
-        <ControlsPanel lookAtObject={lookAtObject} />
+        <ControlsPanel tabs={[]} />
       </div>
       <Canvas>
-        <Scene
+        <TestingScene
           objectPosition={object.position}
           objectScale={object.scale}
           groundPosition={ground.position}
           objectRotation={object.rotation}
           lookAtTarget={lookAtTarget.position}
-          showTarget={lookAtTarget.isEnabled && lookAtTarget.isShowTargetMarker}
+          showTarget={lookAtTarget.isShowTargetMarker}
+          model={
+            <mesh>
+              <boxGeometry args={[1, 1, 1]} />
+              <meshBasicMaterial color="orange" />
+            </mesh>
+          }
+          groundModel={<gridHelper args={[10, 10]} />}
+          lookAtTargetModel={
+            <mesh>
+              <boxGeometry args={[0.3, 0.3, 0.3]} />
+              <meshBasicMaterial color="blue" />
+            </mesh>
+          }
+          staticBackgroundModels={<></>}
+          lights={<></>}
+          showGround={true}
         />
         <CameraControlsInScene
           cameraPosition={camera.desiredPosition}
           cameraFov={camera.desiredFov}
           lookAtTarget={lookAtTarget.position}
-          lookAtEnabled={lookAtTarget.isEnabled}
+          lookAtMode={lookAtTarget.mode}
           isShowGizmos={false}
         />
         <CameraDataCollector onCameraDataChange={handleCameraDataChange} />
@@ -477,8 +549,8 @@ export const DataDisplayWindow = ({
 };
 
 export {
-  Scene,
-  CameraDataCollector,
   CameraControlsInScene,
+  CameraDataCollector,
+  Scene,
   SceneStoreProvider,
 };

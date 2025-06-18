@@ -1,5 +1,5 @@
 "use client";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -154,6 +154,17 @@ export default function Navbar() {
 
   const pathVars = pathname.split("/");
   console.log(pathVars);
+
+  return (
+    <nav className="fixed top-0 left-0 right-0 z-50  border max-h-[36px] h-[36px] ">
+      <div className="h-full w-full flex items-center justify-end px-2">
+        <Button size={"icon"} variant={"outline"}>
+          <HamburgerMenuIcon />
+        </Button>
+      </div>
+    </nav>
+  );
+
   if (pathVars[1] == "viewer") {
     let viewerDesc = undefined;
     if (pathVars.length >= 5) {
@@ -183,8 +194,9 @@ export default function Navbar() {
   const links = [
     { path: "journey", label: "Journey" },
     { path: "freeview", label: "Freeview" },
-    {path: "newtesting", label: "New Testing" },
-    {path: "newtesting/guided", label: "Guided" },
+    { path: "newtesting", label: "New Testing" },
+    { path: "newtesting/guided", label: "Guided" },
+    { path: "newtesting/preset-creator", label: "Preset Creator" },
     // { path: "resources", label: "Resources" },
     // { path: "about", label: "About" },
   ];
