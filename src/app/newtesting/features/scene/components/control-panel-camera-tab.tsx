@@ -9,19 +9,17 @@ import { ControlPanelSlider } from "@/app/newtesting/app/components/control-pane
 import { ControlPanelCheckbox } from "@/app/newtesting/app/components/control-panel/components/control-panel-checkbox";
 
 export const ControlPanelCameraTab = () => {
-  const camera = useTestingNewStore()((state) => state.camera.data);
-  const setCamera = useTestingNewStore()((state) => state.camera.setCamera);
-  const setCameraDesiredPosition = useTestingNewStore()(
-    (state) => state.camera.setCameraDesiredPosition
+  const camera = useTestingNewStore((state) => state.camera.data);
+  const setCamera = useTestingNewStore((state) => state.setCamera);
+  const setCameraDesiredPosition = useTestingNewStore(
+    (state) => state.setCameraDesiredPosition
   );
-  const resetCamera = useTestingNewStore()((state) => state.camera.resetCamera);
+  const resetCamera = useTestingNewStore((state) => state.resetCamera);
 
-  const lookAtTarget = useTestingNewStore()((state) => state.lookAtTarget.data);
-  const setLookAtTarget = useTestingNewStore()(
-    (state) => state.lookAtTarget.setLookAtTarget
-  );
-  const resetLookAtTargetPosition = useTestingNewStore()(
-    (state) => state.lookAtTarget.resetLookAtTargetPosition
+  const lookAtTarget = useTestingNewStore((state) => state.lookAtTarget.data);
+  const setLookAtTarget = useTestingNewStore((state) => state.setLookAtTarget);
+  const resetLookAtTargetPosition = useTestingNewStore(
+    (state) => state.resetLookAtTargetPosition
   );
 
   return (

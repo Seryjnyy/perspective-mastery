@@ -11,10 +11,10 @@ import { useState } from "react";
 
 export const ControlPanelAnimationTab = () => {
   const setObjectRotation = useTestingNewStore()(
-    (state) => state.object.setObjectRotation
+    (state) => state.object.setRotation
   );
   const setObjectPosition = useTestingNewStore()(
-    (state) => state.object.setObjectPosition
+    (state) => state.object.setPosition
   );
   const setCameraPosition = useTestingNewStore()(
     (state) => state.camera.setCameraDesiredPosition

@@ -10,13 +10,18 @@ export enum LOCAL_GROUND_MODELS {
 export enum LOCAL_OBJECT_MODELS {
   CUBE = "local-cube",
   CYLINDER = "local-cylinder",
+  HEAD = "local-head",
 }
 
 export enum LOCAL_LOOK_AT_TARGET_MODELS {
   SPHERE = "local-look-at-target-sphere",
 }
 
-const modelRepo = {
+/**
+ * This is a repo for local primitive models. This is responsible for providing the primitive models that don't need any loading.
+ * @returns A ReactNode of a primitive model.
+ */
+const localPrimitiveModelsRepo = {
   /**
    * This returns primitive models.
    * If you want to load a model from a url, use ModelGetter component.
@@ -181,4 +186,4 @@ const modelRepo = {
   },
 };
 
-export default modelRepo;
+export default localPrimitiveModelsRepo;

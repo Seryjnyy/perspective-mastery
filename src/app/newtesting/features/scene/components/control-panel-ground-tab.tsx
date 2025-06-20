@@ -12,7 +12,11 @@ import { LOCAL_GROUND_MODELS } from "../../animation/model-repo";
 import { ControlPanelSlider } from "@/app/newtesting/app/components/control-panel/components/control-panel-slider";
 
 export const ControlPanelGroundTab = () => {
-  const ground = useTestingNewStore()((state) => state.ground);
+  const ground = useTestingNewStore((state) => state.ground);
+  const setGroundPosition = useTestingNewStore(
+    (state) => state.setGroundPosition
+  );
+  const resetGround = useTestingNewStore((state) => state.resetGround);
 
   return (
     <div>
@@ -24,13 +28,13 @@ export const ControlPanelGroundTab = () => {
         max={5}
         step={0.1}
         onChange={(value) =>
-          ground.setGroundPosition({
+          setGroundPosition({
             ...ground.data.position,
             y: value,
           })
         }
       />
-      <Button onClick={() => ground.resetGround()}>Reset</Button>
+      <Button onClick={() => resetGround()}>Reset</Button>
       <Select>
         <SelectTrigger>
           <SelectValue />

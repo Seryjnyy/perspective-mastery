@@ -10,30 +10,30 @@ export const RecordTab = ({
   keyframes: AnimationKeyframe[];
   setKeyframes: (keyframes: AnimationKeyframe[]) => void;
 }) => {
-  const object = useTestingNewStore()((state) => state.object.data);
-  const setObjectPosition = useTestingNewStore()(
-    (state) => state.object.setObjectPosition
+  const object = useTestingNewStore((state) => state.object.data);
+  const setObjectPosition = useTestingNewStore(
+    (state) => state.setObjectPosition
   );
 
-  const setObjectRotation = useTestingNewStore()(
-    (state) => state.object.setObjectRotation
+  const setObjectRotation = useTestingNewStore(
+    (state) => state.setObjectRotation
   );
-  const setCameraDesiredFov = useTestingNewStore()(
-    (state) => state.camera.setCameraDesiredFov
+  const setCameraDesiredFov = useTestingNewStore(
+    (state) => state.setCameraDesiredFov
   );
-  const setCameraDesiredPosition = useTestingNewStore()(
-    (state) => state.camera.setCameraDesiredPosition
+  const setCameraDesiredPosition = useTestingNewStore(
+    (state) => state.setCameraDesiredPosition
   );
-  const camera = useTestingNewStore()((state) => state.camera.data);
+  const camera = useTestingNewStore((state) => state.camera.data);
 
-  const setLookAtTargetPosition = useTestingNewStore()(
-    (state) => state.lookAtTarget.setLookAtTargetPosition
+  const setLookAtTargetPosition = useTestingNewStore(
+    (state) => state.setLookAtTargetPosition
   );
 
-  const lookAtTarget = useTestingNewStore()((state) => state.lookAtTarget.data);
-  const resetObject = useTestingNewStore()((state) => state.object.resetObject);
-  const objectDefaults = useTestingNewStore()(
-    (state) => state.object.getDefaults
+  const lookAtTarget = useTestingNewStore((state) => state.lookAtTarget.data);
+  const resetObject = useTestingNewStore((state) => state.resetObject);
+  const objectDefaults = useTestingNewStore(
+    (state) => state.getObjectDefaults
   )();
 
   const applyKeyframe = (

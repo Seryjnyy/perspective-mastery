@@ -2,11 +2,19 @@ import { useGLTF } from "@react-three/drei";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { Loader } from "./loader";
-import modelRepo from "../../animation/model-repo";
+import localPrimitiveModelsRepo from "../../animation/model-repo";
 import { Model } from "../models/model";
 import { Vec3 } from "../../../scene-store";
 
-export default function ModelGetter({
+/**
+ * Responsible for loading in the model to use in a three js scene. Handles local and remote models.
+ *
+ * @param model - The model to load.
+ * @param onLoaded - A callback function to call when the model is loaded.
+ * @param showBoundingBox - Whether to show the bounding box of the model.
+ * @returns The model to use in scene.
+ */
+export default function ModelLoader({
   model,
   onLoaded,
   showBoundingBox = false,
@@ -65,7 +73,7 @@ const LocalPrimitiveModel = ({
     onLoaded?.();
   }, [onLoaded]);
 
-  return <>{modelRepo.getLocalModel(modelId)}</>;
+  return <>{localPrimitiveModelsRepo.getLocalModel(modelId)}</>;
 };
 
 /**

@@ -26,18 +26,23 @@ import {
 } from "react";
 import * as THREE from "three";
 import { OrbitControls as OrbitControlsImpl } from "three-stdlib";
-import { DataDisplayObject, DataDisplaySection } from "./data-display/base";
+import {
+  ObjectDataDisplayObject,
+  ObjectDataDisplaySection,
+} from "@/app/newtesting/shared/components/object-data-display";
 import SceneVisualisation, {
   SceneVisualisationProps,
 } from "./features/scene-previewer/scene-visualisation";
-import { TestingScene } from "./guided/[challenge]/page";
+import { TestingScene } from "./challenges/[challenge]/page";
 import {
   CameraData,
   createSceneStore,
   LookAtMode,
   LookAtTargetData,
   ObjectData,
+  SceneState,
 } from "./scene-store";
+import { StoreApi, useStore } from "zustand";
 
 // Scene with a controllable object group
 const Scene = ({
@@ -169,11 +174,11 @@ const CameraControlsInScene = ({
 }) => {
   const cameraRef = useRef<THREE.PerspectiveCamera>(null);
   const controlsRef = useRef<OrbitControlsImpl>(null);
-  const setLookAtTargetPosition = useTestingNewStore()(
-    (state) => state.lookAtTarget.setLookAtTargetPosition
+  const setLookAtTargetPosition = useTestingNewStore(
+    (state) => state.setLookAtTargetPosition
   );
-  const setCameraPosition = useTestingNewStore()(
-    (state) => state.camera.setCameraDesiredPosition
+  const setCameraPosition = useTestingNewStore(
+    (state) => state.setCameraDesiredPosition
   );
 
   // Update camera when controls change
@@ -264,19 +269,20 @@ const CameraControlsInScene = ({
   );
 };
 
-type SceneStoreHook = ReturnType<typeof createSceneStore>;
-const SceneStoreContext = createContext<SceneStoreHook | null>(null);
+// export type SceneStoreHook = ReturnType<typeof createSceneStore>;
+// export const SceneStoreContext = createContext<SceneStoreHook | null>(null);
+export const StoreContext = createContext<StoreApi<SceneState> | null>(null);
 
 const SceneStoreProvider = ({ children }: { children: ReactNode }) => {
-  const storeRef = useRef<SceneStoreHook>();
+  const storeRef = useRef<StoreApi<SceneState>>();
   if (!storeRef.current) {
     storeRef.current = createSceneStore();
   }
 
   return (
-    <SceneStoreContext.Provider value={storeRef.current}>
+    <StoreContext.Provider value={storeRef.current}>
       {children}
-    </SceneStoreContext.Provider>
+    </StoreContext.Provider>
   );
 };
 
@@ -288,10 +294,17 @@ export default function NewTestingPage() {
   );
 }
 
-export function useTestingNewStore() {
-  const store = useContext(SceneStoreContext);
+// export const useMyStore = <T,>(selector: (state: MyStore) => T): T => {
+//   const store = useContext(StoreContext);
+//   if (!store)
+//     throw new Error("useMyStore must be used within a MyStoreProvider");
+//   return useStore(store, selector);
+// };
+
+export function useTestingNewStore<T>(selector: (state: SceneState) => T): T {
+  const store = useContext(StoreContext);
   if (!store) throw new Error("useMyStore must be used within MyStoreProvider");
-  return store;
+  return useStore(store, selector);
 }
 
 // Main component
@@ -306,7 +319,9 @@ function CameraControlsScene() {
   );
 
   const object = useTestingNewStore()((state) => state.object.data);
-  const setObject = useTestingNewStore()((state) => state.object.setObject);
+  const setObjectPosition = useTestingNewStore()(
+    (state) => state.object.setPosition
+  );
 
   const ground = useTestingNewStore()((state) => state.ground.data);
 
@@ -338,12 +353,10 @@ function CameraControlsScene() {
 
   const rotateObject = (axis: "x" | "y" | "z", degrees: number) => {
     const radians = (degrees * Math.PI) / 180;
-    setObject({
-      position: {
-        x: object.position.x,
-        y: object.position.y,
-        z: object.position.z,
-      },
+    setObjectPosition({
+      x: object.position.x,
+      y: object.position.y,
+      z: object.position.z,
     });
     // setObjectRotation({
     //   const newRotation = { ...prevRotation };
@@ -530,19 +543,19 @@ export const DataDisplayWindow = ({
         <TabsTrigger value="look-at-target">Look at target</TabsTrigger>
       </TabsList>
       <TabsContent value="camera">
-        <DataDisplaySection title="Camera Data">
-          <DataDisplayObject data={camera} />
-        </DataDisplaySection>
+        <ObjectDataDisplaySection title="Camera Data">
+          <ObjectDataDisplayObject data={camera} />
+        </ObjectDataDisplaySection>
       </TabsContent>
       <TabsContent value="object">
-        <DataDisplaySection title="Object Data">
-          <DataDisplayObject data={object} />
-        </DataDisplaySection>
+        <ObjectDataDisplaySection title="Object Data">
+          <ObjectDataDisplayObject data={object} />
+        </ObjectDataDisplaySection>
       </TabsContent>
       <TabsContent value="look-at-target">
-        <DataDisplaySection title="Look At Target Data">
-          <DataDisplayObject data={lookAtTarget} />
-        </DataDisplaySection>
+        <ObjectDataDisplaySection title="Look At Target Data">
+          <ObjectDataDisplayObject data={lookAtTarget} />
+        </ObjectDataDisplaySection>
       </TabsContent>
     </Tabs>
   );

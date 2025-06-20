@@ -1,48 +1,95 @@
 "use client";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Canvas } from "@react-three/fiber";
-import { useMemo, useState } from "react";
+import {
+  createContext,
+  ReactNode,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { ControlsPanel } from "../app/components/control-panel/control-panel";
-import { AnimationKeyframe } from "../features/animation/types/types";
-import modelRepo from "../features/animation/model-repo";
+import { TestingScene } from "../challenges/[challenge]/page";
+import localPrimitiveModelsRepo from "../features/animation/model-repo";
 import SceneVisualisation from "../features/scene-previewer/scene-visualisation";
-import ModelGetter from "../features/scene/components/model-getter";
-import { TestingScene } from "../guided/[challenge]/page";
+import ModelLoader from "../features/scene/components/model-loader";
 import {
   CameraControlsInScene,
   CameraDataCollector,
   DataDisplayWindow,
   SceneStoreProvider,
+  StoreContext,
   useTestingNewStore,
 } from "../page";
-import { CameraData } from "../scene-store";
+import {
+  CameraData,
+  createPersistedSceneStore,
+  createSceneStore,
+  SceneState,
+} from "../scene-store";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Pencil } from "lucide-react";
 import { CONTROL_PANEL_TABS } from "../app/components/control-panel/control-panel-tabs";
 import { useLocalAnimationPresetsStore } from "../features/animation-recorder/local-animation-preset-store";
-import { AnimationPresetLocalCreation } from "../types2";
 import { RecordTab } from "../features/animation-recorder/record-window";
+import { useRecorderSessionStore } from "../features/animation-recorder/recorder-session-store";
+import { globalRecorderSceneStore } from "../features/animation-recorder/use-recorder-scene-store";
+import { useModelsData } from "../features/scene/models/use-models";
+import { StoreApi } from "zustand";
+import { AnimationKeyframe } from "../features/animation/types/types";
+import { AnimationPresetLocalCreation } from "../types2";
 
 export default function PresetCreatorPage() {
   return (
-    <SceneStoreProvider>
+    <TestingSceneStoreProvider>
       <Page />
-    </SceneStoreProvider>
+    </TestingSceneStoreProvider>
   );
 }
 
-const Page = () => {
-  const camera = useTestingNewStore()((state) => state.camera.data);
-  const setCamera = useTestingNewStore()((state) => state.camera.setCamera);
+const TestingSceneStoreProvider = ({ children }: { children: ReactNode }) => {
+  const storeRef = useRef<StoreApi<SceneState>>();
+  if (!storeRef.current) {
+    storeRef.current = createSceneStore(true);
+  }
 
-  const lookAtTarget = useTestingNewStore()((state) => state.lookAtTarget.data);
-  const setLookAtTarget = useTestingNewStore()(
-    (state) => state.lookAtTarget.setLookAtTarget
+  return (
+    <StoreContext.Provider value={storeRef.current}>
+      {children}
+    </StoreContext.Provider>
   );
+};
 
-  const object = useTestingNewStore()((state) => state.object.data);
-  const setObject = useTestingNewStore()((state) => state.object.setObject);
+const Page = () => {
+  const camera = useTestingNewStore((state) => state.camera.data);
+  const setCamera = useTestingNewStore((state) => state.setCamera);
 
-  const ground = useTestingNewStore()((state) => state.ground.data);
+  const lookAtTarget = useTestingNewStore((state) => state.lookAtTarget.data);
+  const setLookAtTarget = useTestingNewStore((state) => state.setLookAtTarget);
+  const object = useTestingNewStore((state) => state.object.data);
+  const setObjectModel = useTestingNewStore((state) => state.setObjectModel);
+  const setObjectPosition = useTestingNewStore(
+    (state) => state.setObjectPosition
+  );
+  const ground = useTestingNewStore((state) => state.ground.data);
+
+  // const {
+  //   currentPreset,
+  //   clearCurrentPreset,
+  //   setName,
+  //   setDescription,
+  //   setModelId,
+  // } = useRecorderSessionStore();
 
   // Sync store data with actual camera data
   const handleCameraDataChange = (data: CameraData) => {
@@ -71,86 +118,32 @@ const Page = () => {
     });
   };
 
-  const rotateObject = (axis: "x" | "y" | "z", degrees: number) => {
-    const radians = (degrees * Math.PI) / 180;
-    setObject({
-      position: {
-        x: object.position.x,
-        y: object.position.y,
-        z: object.position.z,
-      },
-    });
-    // setObjectRotation({
-    //   const newRotation = { ...prevRotation };
-    //   newRotation[axis] += radians;
-    //   return newRotation;
-    // });
-  };
+  // const rotateObject = (axis: "x" | "y" | "z", degrees: number) => {
+  //   const radians = (degrees * Math.PI) / 180;
+  //   setObjectPosition({
+  //     x: object.position.x,
+  //     y: object.position.y,
+  //     z: object.position.z,
+  //   });
+  //   // setObjectRotation({
+  //   //   const newRotation = { ...prevRotation };
+  //   //   newRotation[axis] += radians;
+  //   //   return newRotation;
+  //   // });
+  // };
 
-  // const model = useMemo(() => {
-  //   const modelData = animationPreset.animationPresetData.modelData;
-  //   return modelRepo.getModel(
-  //     modelData.model.source,
-  //     modelData.position,
-  //     modelData.scale,
-  //     modelData.rotation
-  //   );
-  // }, [animationPreset]);
-
-  //   const model = useMemo(() => {
-  //     return modelRepo.getLocalModel(
-  //       object.model.source,
-  //       object.position,
-  //       object.scale,
-  //       object.rotation
-  //     );
-  //   }, [object.model, object.position, object.scale, object.rotation]);
-
-  // const groundModel = useMemo(() => {
-  //   const groundData = animationPreset.animationPresetData.groundData;
-  //   return modelRepo.getGroundModel(
-  //     groundData.model,
-  //     groundData.position,
-  //     groundData.scale,
-  //     groundData.rotation
-  //   );
-  // }, [animationPreset]);
-
-  // const lookAtTargetModel = useMemo(() => {
-  //   const lookAtTargetData =
-  //     animationPreset.animationPresetData.lookAtTargetData;
-  //   return modelRepo.getLookAtTargetModel(
-  //     lookAtTargetData.model,
-  //     lookAtTargetData.position,
-  //     lookAtTargetData.scale,
-  //     lookAtTargetData.rotation
-  //   );
-  // }, [animationPreset]);
-
-  // const staticBackgroundModels = useMemo(() => {
-  //   const staticBackgroundData =
-  //     animationPreset.animationPresetData.staticBackground;
-  //   const models = staticBackgroundData.models.map((model) =>
-  //     modelRepo.getModel(
-  //       model.model.source,
-  //       model.position,
-  //       model.scale,
-  //       model.rotation
-  //     )
-  //   );
-  //   return <group>{models}</group>;
-  // }, [animationPreset]);
-  const [keyframes, setKeyframes] = useState<AnimationKeyframe[]>([]);
   const lookAtTargetModel = useMemo(() => {
-    return modelRepo.getLocalModel("local-look-at-target-sphere");
+    return localPrimitiveModelsRepo.getLocalModel(
+      "local-look-at-target-sphere"
+    );
   }, [lookAtTarget.position]);
 
   const groundModel = useMemo(() => {
-    return modelRepo.getLocalModel("local-grid");
+    return localPrimitiveModelsRepo.getLocalModel("local-grid");
   }, [ground.position]);
 
   const model = useMemo(() => {
-    return <ModelGetter model={object.model} />;
+    return <ModelLoader model={object.model} />;
   }, [object.model, object.position, object.scale, object.rotation]);
 
   const staticBackgroundModels = useMemo(() => {
@@ -168,7 +161,22 @@ const Page = () => {
   }, []);
 
   const { setLocalAnimationPreset } = useLocalAnimationPresetsStore();
+  const { getModelData } = useModelsData();
 
+  useEffect(() => {
+    const loadModel = async () => {
+      const model = await getModelData(
+        currentPreset.animationPresetData.modelData.modelId
+      );
+      if (model) {
+        setObjectModel(model);
+      }
+    };
+    loadModel();
+  }, [currentPreset.animationPresetData]);
+
+  // persist seperately
+  // keyframes
   const exportPreset = () => {
     console.log("exporting preset");
 
@@ -181,14 +189,14 @@ const Page = () => {
           modelId: object.model.id,
         },
         groundData: {
-          model: undefined,
+          modelId: ground.model.id,
         },
         staticBackground: {
           models: [],
         },
         lookAtTargetData: {
           model: {
-            modelId: "local-look-at-target-sphere",
+            modelId: lookAtTarget.model.id,
           },
         },
         lightData: {
@@ -206,27 +214,65 @@ const Page = () => {
 
     const json = JSON.stringify(preset);
     console.log(json);
-    MOVE_THIS_FUNCTION_CREATE_PRESET(preset);
+    // MOVE_THIS_FUNCTION_CREATE_PRESET(preset);
     // const blob = new Blob([json], { type: "application/json" });
     // const url = URL.createObjectURL(blob);
     // const a = document.createElement("a");
   };
 
-  const MOVE_THIS_FUNCTION_CREATE_PRESET = (
-    data: AnimationPresetLocalCreation
-  ) => {
-    setLocalAnimationPreset({
-      ...data,
-      id: crypto.randomUUID(),
-    });
-  };
+  // const MOVE_THIS_FUNCTION_CREATE_PRESET = (
+  //   data: AnimationPresetLocalCreation
+  // ) => {
+  //   setLocalAnimationPreset({
+  //     ...data,
+  //     id: crypto.randomUUID(),
+  //   });
+  // };
+
+  const [keyframes, setKeyframes] = useState<AnimationKeyframe[]>([]);
 
   return (
     <div className="h-[calc(100vh-36px)] mt-[36px] flex flex-col">
-      <div className=" fixed top-0 left-0 px-2 z-50 flex items-center h-[36px]">
-        <Button size={"sm"} onClick={exportPreset}>
-          Export
-        </Button>
+      <div className=" fixed top-0 left-0 px-2 z-50 flex items-center h-[36px] gap-6">
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button size={"icon"} variant={"ghost"}>
+              <Pencil />
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Save Preset</DialogTitle>
+              <DialogDescription>
+                This action cannot be undone. This will permanently delete your
+                account and remove your data from our servers.
+              </DialogDescription>
+            </DialogHeader>
+
+            {/* <div>
+              <Input
+                placeholder="Preset Name"
+                value={currentPreset.metadata.name}
+                onChange={(e) => setName(e.target.value)}
+              />
+              <Input
+                placeholder="Preset Description"
+                value={currentPreset.metadata.desc}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+            </div> */}
+            <div className="flex gap-2">
+              <Button>Cancel</Button>
+              <Button>Save</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+        <div>
+          {/* {currentPreset.metadata.name == ""
+            ? "Untitled"
+            : currentPreset.metadata.name} */}
+        </div>
+        <div>{/* <Button onClick={clearCurrentPreset}>Clear</Button> */}</div>
       </div>
 
       {/* Top Row */}
@@ -259,8 +305,8 @@ const Page = () => {
             <CameraControlsInScene
               cameraPosition={camera.desiredPosition}
               cameraFov={camera.desiredFov}
-              lookAtTarget={lookAtTarget.position}
-              lookAtMode={lookAtTarget.mode}
+              lookAtTarget={{ x: 0, y: 0, z: 0 }}
+              lookAtMode={"orbit"}
               isShowGizmos={false}
             />
             <CameraDataCollector onCameraDataChange={handleCameraDataChange} />

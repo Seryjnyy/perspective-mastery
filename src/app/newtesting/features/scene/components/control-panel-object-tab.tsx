@@ -14,30 +14,34 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Model } from "../models/model";
-import { useModels } from "../models/use-models";
+import { useModelsData } from "../models/use-models";
 import { ControlPanelTabSection } from "@/app/newtesting/app/components/control-panel/components/control-panel-section";
 import { ControlPanelSlider } from "@/app/newtesting/app/components/control-panel/components/control-panel-slider";
 import { ControlPanelButton } from "@/app/newtesting/app/components/control-panel/components/control-panel-button";
 
 export const ControlPanelObjectTab = () => {
-  const object = useTestingNewStore()((state) => state.object.data);
-  const setObject = useTestingNewStore()((state) => state.object.setObject);
-  const setObjectModel = useTestingNewStore()(
-    (state) => state.object.setObjectModel
+  const object = useTestingNewStore((state) => state.object.data);
+  const setObjectPosition = useTestingNewStore(
+    (state) => state.setObjectPosition
   );
-  const resetObject = useTestingNewStore()((state) => state.object.resetObject);
-  const objectDefaults = useTestingNewStore()(
-    (state) => state.object.getDefaults
+  const setObjectRotation = useTestingNewStore(
+    (state) => state.setObjectRotation
+  );
+  const setObjectScale = useTestingNewStore((state) => state.setObjectScale);
+  const setObjectModel = useTestingNewStore((state) => state.setObjectModel);
+  const resetObject = useTestingNewStore((state) => state.resetObject);
+  const objectDefaults = useTestingNewStore(
+    (state) => state.getObjectDefaults
   )();
 
   const resetObjectPosition = () => {
-    setObject({ position: objectDefaults.position });
+    setObjectPosition(objectDefaults.position);
   };
   const resetObjectRotation = () => {
-    setObject({ rotation: objectDefaults.rotation });
+    setObjectRotation(objectDefaults.rotation);
   };
   const resetObjectScale = () => {
-    setObject({ scale: objectDefaults.scale });
+    setObjectScale(objectDefaults.scale);
   };
 
   return (
@@ -62,21 +66,21 @@ export const ControlPanelObjectTab = () => {
         <TabsContent value="position">
           <ObjectPositionSection
             objectPosition={object.position}
-            setObjectPosition={(data) => setObject({ position: data })}
+            setObjectPosition={(data) => setObjectPosition(data)}
             resetObject={resetObjectPosition}
           />
         </TabsContent>
         <TabsContent value="rotation">
           <ObjectRotationSection
             objectRotation={object.rotation}
-            setObjectRotation={(data) => setObject({ rotation: data })}
+            setObjectRotation={(data) => setObjectRotation(data)}
             resetObject={resetObjectRotation}
           />
         </TabsContent>
         <TabsContent value="scale">
           <ObjectScaleSection
             objectScale={object.scale}
-            setObjectScale={(data) => setObject({ scale: data })}
+            setObjectScale={(data) => setObjectScale(data)}
             resetObject={resetObjectScale}
           />
         </TabsContent>
@@ -93,10 +97,10 @@ const ObjectModelSection = ({
   selectedModel: Model;
   onModelChange: (model: Model) => void;
 }) => {
-  const { models, getModel } = useModels();
+  const { models, getModelData } = useModelsData();
 
-  const handleModelChange = (modelId: string) => {
-    const model = getModel(modelId);
+  const handleModelChange = async (modelId: string) => {
+    const model = await getModelData(modelId);
     if (model) {
       onModelChange(model);
     }

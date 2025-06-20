@@ -1,8 +1,20 @@
-import { createStore, StateCreator } from "zustand/vanilla";
+import { createStore, StateCreator, StoreApi } from "zustand/vanilla";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import { createSelectors } from "./shared/utils/create-selectors";
-import { localModelsList, Model } from "./features/scene/models/model";
+import {
+  localCube,
+  localGrid,
+  localModelsList,
+  Model,
+} from "./features/scene/models/model";
+import { createJSONStorage, persist } from "zustand/middleware";
+import {
+  LOCAL_GROUND_MODELS,
+  LOCAL_LOOK_AT_TARGET_MODELS,
+  LOCAL_OBJECT_MODELS,
+} from "./features/animation/model-repo";
+import { ModelData } from "./types2";
 
 export type Vec3 = { x: number; y: number; z: number };
 
@@ -26,14 +38,14 @@ export interface CameraSlice {
       desiredPosition: Vec3;
       desiredFov: number;
     };
-    setCamera: (camera: Partial<CameraSlice["camera"]["data"]>) => void;
-    setCameraDesiredPosition: (position: Vec3) => void;
-    setCameraDesiredFov: (fov: number) => void;
-    resetCamera: () => void;
-    getDefaults: () => CameraData & {
-      desiredPosition: Vec3;
-      desiredFov: number;
-    };
+  };
+  setCamera: (camera: Partial<CameraSlice["camera"]["data"]>) => void;
+  setCameraDesiredPosition: (position: Vec3) => void;
+  setCameraDesiredFov: (fov: number) => void;
+  resetCamera: () => void;
+  getCameraDefaults: () => CameraData & {
+    desiredPosition: Vec3;
+    desiredFov: number;
   };
 }
 
@@ -57,34 +69,34 @@ export const createCameraSlice: StateCreator<
 > = (set) => ({
   camera: {
     data: cameraDefaults,
-    setCamera: (cameraData) =>
-      set((state) => ({
-        camera: {
-          ...state.camera,
-          data: {
-            ...state.camera.data,
-            ...cameraData,
-          },
-        },
-      })),
-    setCameraDesiredPosition: (position) =>
-      set((state) => {
-        Object.assign(state.camera.data.desiredPosition, position);
-      }),
-    setCameraDesiredFov: (patch) =>
-      set((state) => {
-        Object.assign(state.camera.data.desiredFov, patch);
-      }),
-
-    resetCamera: () =>
-      set((state) => ({
-        camera: {
-          ...state.camera,
-          data: cameraDefaults,
-        },
-      })),
-    getDefaults: () => cameraDefaults,
   },
+  setCamera: (cameraData) =>
+    set((state) => ({
+      camera: {
+        ...state.camera,
+        data: {
+          ...state.camera.data,
+          ...cameraData,
+        },
+      },
+    })),
+  setCameraDesiredPosition: (position) =>
+    set((state) => {
+      Object.assign(state.camera.data.desiredPosition, position);
+    }),
+  setCameraDesiredFov: (patch) =>
+    set((state) => {
+      Object.assign(state.camera.data.desiredFov, patch);
+    }),
+
+  resetCamera: () =>
+    set((state) => ({
+      camera: {
+        ...state.camera,
+        data: cameraDefaults,
+      },
+    })),
+  getCameraDefaults: () => cameraDefaults,
 });
 
 export type LookAtMode = "manual" | "orbit";
@@ -94,16 +106,17 @@ export type LookAtTargetData = {
   mode: LookAtMode;
   isFollowModel: boolean;
   isShowTargetMarker: boolean;
+  model: ModelData;
 };
 
 export interface LookAtTargetSlice {
   lookAtTarget: {
     data: LookAtTargetData;
-    setLookAtTarget: (lookAtTarget: Partial<LookAtTargetData>) => void;
-    setLookAtTargetPosition: (position: Vec3) => void;
-    resetLookAtTargetPosition: () => void;
-    getDefaults: () => LookAtTargetData;
   };
+  setLookAtTarget: (lookAtTarget: Partial<LookAtTargetData>) => void;
+  setLookAtTargetPosition: (position: Vec3) => void;
+  resetLookAtTargetPosition: () => void;
+  getLookAtTargetDefaults: () => LookAtTargetData;
 }
 
 const lookAtTargetDefaults: LookAtTargetData = {
@@ -112,6 +125,9 @@ const lookAtTargetDefaults: LookAtTargetData = {
   isFollowModel: false,
   isShowTargetMarker: true,
   position: { x: 0, y: 0, z: 0 },
+  model: {
+    modelId: LOCAL_LOOK_AT_TARGET_MODELS.SPHERE,
+  },
 };
 
 export const createLookAtTargetSlice: StateCreator<
@@ -122,58 +138,58 @@ export const createLookAtTargetSlice: StateCreator<
 > = (set) => ({
   lookAtTarget: {
     data: lookAtTargetDefaults,
-    setLookAtTarget: (data) =>
-      set((state) => ({
-        lookAtTarget: {
-          ...state.lookAtTarget,
-          data: {
-            ...state.lookAtTarget.data,
-            ...data,
-          },
-        },
-      })),
-    setLookAtTargetPosition: (patch) =>
-      set((state) => {
-        Object.assign(state.lookAtTarget.data.position, patch);
-      }),
-    resetLookAtTargetPosition: () =>
-      set((state) => ({
-        lookAtTarget: {
-          ...state.lookAtTarget,
-          data: {
-            ...state.lookAtTarget.data,
-            position: lookAtTargetDefaults.position,
-          },
-        },
-      })),
-    getDefaults: () => lookAtTargetDefaults,
   },
+  setLookAtTarget: (data) =>
+    set((state) => ({
+      lookAtTarget: {
+        ...state.lookAtTarget,
+        data: {
+          ...state.lookAtTarget.data,
+          ...data,
+        },
+      },
+    })),
+  setLookAtTargetPosition: (patch) =>
+    set((state) => {
+      Object.assign(state.lookAtTarget.data.position, patch);
+    }),
+  resetLookAtTargetPosition: () =>
+    set((state) => ({
+      lookAtTarget: {
+        ...state.lookAtTarget,
+        data: {
+          ...state.lookAtTarget.data,
+          position: lookAtTargetDefaults.position,
+        },
+      },
+    })),
+  getLookAtTargetDefaults: () => lookAtTargetDefaults,
 });
 
 export type ObjectData = {
   position: Vec3;
   rotation: Vec3;
   scale: Vec3;
-  model: Model;
+  model: ModelData;
 };
 
 export interface ObjectSlice {
   object: {
     data: ObjectData;
-    setObject: (object: Partial<ObjectData>) => void;
-    setObjectPosition: (position: Vec3) => void;
-    setObjectRotation: (rotation: Vec3) => void;
-    setObjectModel: (model: Model) => void;
-    resetObject: () => void;
-    getDefaults: () => ObjectData;
   };
+  setObjectModel: (model: Model) => void;
+  setObjectPosition: (position: Vec3) => void;
+  setObjectRotation: (rotation: Vec3) => void;
+  setObjectScale: (scale: Vec3) => void;
+  resetObject: () => void;
+  getObjectDefaults: () => ObjectData;
 }
 
 const objectDefaults: ObjectData = {
   position: { x: 0, y: 0.5, z: 0 },
   rotation: { x: 0, y: 0, z: 0 },
   scale: { x: 1, y: 1, z: 1 },
-  model: localModelsList[0],
+  model: localCube,
 };
 
 export const createObjectSlice: StateCreator<
@@ -184,53 +200,47 @@ export const createObjectSlice: StateCreator<
 > = (set) => ({
   object: {
     data: objectDefaults,
-    setObject: (objectData) =>
-      set((state) => ({
-        object: {
-          ...state.object,
-          data: {
-            ...state.object.data,
-            ...objectData,
-          },
-        },
-      })),
-    setObjectPosition: (patch) =>
-      set((state) => {
-        Object.assign(state.object.data.position, patch);
-      }),
-    setObjectRotation: (patch) =>
-      set((state) => {
-        Object.assign(state.object.data.rotation, patch);
-      }),
-    setObjectModel: (patch) =>
-      set((state) => {
-        Object.assign(state.object.data.model, patch);
-      }),
-    resetObject: () =>
-      set((state) => ({
-        object: {
-          ...state.object,
-          data: objectDefaults,
-        },
-      })),
-    getDefaults: () => objectDefaults,
   },
+  setObjectModel: (patch) =>
+    set((state) => {
+      state.object.data.model = patch;
+    }),
+  setObjectPosition: (patch) =>
+    set((state) => {
+      state.object.data.position = patch;
+    }),
+  setObjectRotation: (patch) =>
+    set((state) => {
+      state.object.data.rotation = patch;
+    }),
+  setObjectScale: (patch) =>
+    set((state) => {
+      state.object.data.scale = patch;
+    }),
+  resetObject: () =>
+    set((state) => {
+      state.object.data = objectDefaults;
+    }),
+  getObjectDefaults: () => objectDefaults,
 });
 
 export type GroundData = {
-  position: Vec3;
+  model: ModelData;
 };
 
 export interface GroundSlice {
   ground: {
     data: GroundData;
-    setGroundPosition: (position: Vec3) => void;
-    resetGround: () => void;
   };
+  setGroundPosition: (position: Vec3) => void;
+  resetGround: () => void;
+  getGroundDefaults: () => GroundData;
 }
 
 const groundDefaults: GroundData = {
-  position: { x: 0, y: 0, z: 0 },
+  model: {
+    modelId: LOCAL_GROUND_MODELS.GRID,
+  },
 };
 export const createGroundSlice: StateCreator<
   SceneState, // full state
@@ -240,29 +250,129 @@ export const createGroundSlice: StateCreator<
 > = (set) => ({
   ground: {
     data: groundDefaults,
-    setGroundPosition: (patch) =>
-      set((state) => {
-        Object.assign(state.ground.data.position, patch);
-      }),
-    resetGround: () =>
-      set((state) => ({
-        ground: {
-          ...state.ground,
-          data: groundDefaults,
-        },
-      })),
-    getDefaults: () => groundDefaults,
   },
+  setGroundPosition: (patch) =>
+    set((state) => {
+      state.ground.data.model.position = patch;
+    }),
+  resetGround: () =>
+    set((state) => {
+      state.ground.data = groundDefaults;
+    }),
+  getGroundDefaults: () => groundDefaults,
 });
 
-type SceneState = CameraSlice & LookAtTargetSlice & ObjectSlice & GroundSlice;
+export type StaticBackgroundData = {
+  models: Model[];
+  position?: Vec3;
+  rotation?: Vec3;
+  scale?: Vec3;
+};
 
-export const createSceneStore = () =>
+export interface StaticBackgroundSlice {
+  staticBackground: {
+    data: StaticBackgroundData;
+  };
+  addModelToStaticBackground: (model: Model) => void;
+  removeModelFromStaticBackground: (model: Model) => void;
+  resetStaticBackground: () => void;
+}
+
+const staticBackgroundDefaults: StaticBackgroundData = {
+  models: [],
+};
+export const createStaticBackgroundSlice: StateCreator<
+  SceneState, // full state
+  [["zustand/immer", never]], // middleware
+  [], // no other middleware
+  StaticBackgroundSlice // this slice
+> = (set) => ({
+  staticBackground: {
+    data: staticBackgroundDefaults,
+  },
+  addModelToStaticBackground: (patch) =>
+    set((state) => {
+      const isNotInList =
+        state.staticBackground.data.models.find(
+          (model) => model.id == patch.id
+        ) == null;
+      if (isNotInList) {
+        state.staticBackground.data.models = [
+          ...state.staticBackground.data.models,
+          patch,
+        ];
+      }
+    }),
+  removeModelFromStaticBackground: (patch) =>
+    set((state) => {
+      state.staticBackground.data.models =
+        state.staticBackground.data.models.filter(
+          (model) => model.id != patch.id
+        );
+    }),
+  resetStaticBackground: () =>
+    set((state) => {
+      state.staticBackground.data = staticBackgroundDefaults;
+    }),
+});
+
+export type SceneState = CameraSlice &
+  LookAtTargetSlice &
+  ObjectSlice &
+  GroundSlice &
+  StaticBackgroundSlice;
+
+const createSceneStoreInitializer = (
+  set: StoreApi<SceneState>["setState"],
+  get: StoreApi<SceneState>["getState"],
+  api: StoreApi<SceneState>
+): SceneState => ({
+  ...createCameraSlice(set, get, api),
+  ...createLookAtTargetSlice(set, get, api),
+  ...createObjectSlice(set, get, api),
+  ...createGroundSlice(set, get, api),
+  ...createStaticBackgroundSlice(set, get, api),
+});
+
+export const createSceneStore = (
+  persisted = false,
+  storeName = "scene-store"
+): StoreApi<SceneState> => {
+  // The core middleware chain
+  const initializer = immer(createSceneStoreInitializer);
+
+  if (persisted) {
+    const persistedInitializer = persist(initializer, {
+      name: "scene-storefsfew",
+    }) as unknown as StateCreator<SceneState, [], [], SceneState>;
+
+    return createStore<SceneState>(persistedInitializer);
+  }
+
+  return createStore<SceneState>(
+    initializer
+  ) as unknown as StoreApi<SceneState>;
+};
+
+// export const createSceneStore = () =>
+//   create<SceneState>()(
+//     immer((...a) => ({
+//       ...createCameraSlice(...a),
+//       ...createLookAtTargetSlice(...a),
+//       ...createObjectSlice(...a),
+//       ...createGroundSlice(...a),
+//     }))
+//   );
+
+export const createPersistedSceneStore = (name: string) =>
   create<SceneState>()(
-    immer((...a) => ({
-      ...createCameraSlice(...a),
-      ...createLookAtTargetSlice(...a),
-      ...createObjectSlice(...a),
-      ...createGroundSlice(...a),
-    }))
+    persist(immer(createSceneStoreInitializer), {
+      name: name,
+      storage: createJSONStorage(() => localStorage),
+    })
   );
+
+// create store
+// it will store the zustand store name in the local storage
+// if it exists it will load the store from the local storage
+// if it doesn't exist then it will create a new id for that store

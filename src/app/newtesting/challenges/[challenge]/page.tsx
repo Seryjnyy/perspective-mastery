@@ -21,9 +21,9 @@ import { Group } from "three";
 import { animationPresetRepo } from "../../features/animation/animation-preset-repo";
 import { AnimationStepper } from "../../features/animation/components/animation-stepper";
 import SceneVisualisationPreview from "../../features/scene-previewer/scene-visualisation-preview";
-import modelRepo from "../../features/animation/model-repo";
-import ModelGetter from "../../features/scene/components/model-getter";
-import { useModels } from "../../features/scene/models/use-models";
+import localPrimitiveModelsRepo from "../../features/animation/model-repo";
+import ModelLoader from "../../features/scene/components/model-loader";
+import { useModelsData } from "../../features/scene/models/use-models";
 import {
   CameraControlsInScene,
   CameraDataCollector,
@@ -63,10 +63,10 @@ function GuidedChallenge({
   const setCamera = useTestingNewStore()((state) => state.camera.setCamera);
 
   const setObjectRotation = useTestingNewStore()(
-    (state) => state.object.setObjectRotation
+    (state) => state.object.setRotation
   );
   const setObjectPosition = useTestingNewStore()(
-    (state) => state.object.setObjectPosition
+    (state) => state.object.setPosition
   );
   const setCameraPosition = useTestingNewStore()(
     (state) => state.camera.setCameraDesiredPosition
@@ -90,7 +90,7 @@ function GuidedChallenge({
 
   const navigate = useRouter();
 
-  const models = useModels();
+  const models = useModelsData();
 
   // Sync store data with actual camera data
   const handleCameraDataChange = (data: CameraData) => {
@@ -132,7 +132,7 @@ function GuidedChallenge({
 
   const groundModel = useMemo(() => {
     const groundData = animationPreset.animationPresetData.groundData;
-    return modelRepo.getLocalModel(
+    return localPrimitiveModelsRepo.getLocalModel(
       groundData.model?.modelId ?? "",
       groundData.position,
       groundData.scale,
@@ -144,7 +144,7 @@ function GuidedChallenge({
   const lookAtTargetModel = useMemo(() => {
     const lookAtTargetData =
       animationPreset.animationPresetData.lookAtTargetData;
-    return modelRepo.getLocalModel(
+    return localPrimitiveModelsRepo.getLocalModel(
       lookAtTargetData.model.modelId,
       lookAtTargetData.position,
       lookAtTargetData.scale,
@@ -156,7 +156,7 @@ function GuidedChallenge({
     const staticBackgroundData =
       animationPreset.animationPresetData.staticBackground;
     const models = staticBackgroundData.models.map((model) =>
-      modelRepo.getLocalModel(
+      localPrimitiveModelsRepo.getLocalModel(
         model.modelId,
         model.position,
         model.scale,
@@ -169,7 +169,7 @@ function GuidedChallenge({
   const lights = useMemo(() => {
     const lightData = animationPreset.animationPresetData.lightData;
     return lightData.lights.map((light) =>
-      modelRepo.getLightModel(
+      localPrimitiveModelsRepo.getLightModel(
         light.type,
         light.position,
         light.scale,
@@ -251,7 +251,7 @@ function GuidedChallenge({
             objectScale={object.scale}
             groundPosition={ground.position}
             model={
-              <ModelGetter
+              <ModelLoader
                 model={model}
                 onLoaded={() => {
                   setIsModelLoaded(true);
@@ -440,7 +440,7 @@ function GuidedChallenge({
           lookAtTarget={lookAtTarget.position}
           showTarget={lookAtTarget.isShowTargetMarker}
           model={
-            <ModelGetter
+            <ModelLoader
               model={model}
               onLoaded={() => {
                 setIsModelLoaded(true);

@@ -35,7 +35,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { AnimationPresetLocalModel, testAnimationPresets } from "./types2";
 import { useRouter } from "next/navigation";
-import modelRepo from "./features/animation/model-repo";
+import localPrimitiveModelsRepo from "./features/animation/model-repo";
 import { animationPresetRepo } from "./features/animation/animation-preset-repo";
 import { useLocalAnimationPresetsStore } from "./features/animation-recorder/local-animation-preset-store";
 

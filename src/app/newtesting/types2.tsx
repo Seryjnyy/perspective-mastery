@@ -81,7 +81,7 @@ type LightData = {
 type AnimationPresetData = {
   animationData: AnimationData;
   modelData: ModelData;
-  groundData: GroundData;
+  groundData: ModelData;
   staticBackground: StaticBackground;
   lookAtTargetData: LookAtTargetData;
   lightData: LightData;

@@ -10,13 +10,13 @@ import { CameraData } from "@/app/newtesting/scene-store";
 import { Canvas } from "@react-three/fiber";
 import { useMemo, useState } from "react";
 import { AnimationPreviewer } from "../features/animation/components/animation-previewer";
-import modelRepo from "../features/animation/model-repo";
+import localPrimitiveModelsRepo from "../features/animation/model-repo";
 import SceneVisualisation from "../features/scene-previewer/scene-visualisation";
-import ModelGetter from "../features/scene/components/model-getter";
+import ModelLoader from "../features/scene/components/model-loader";
 import { AnimationPresetLocalModel } from "../types2";
 import { TestingScene } from "./[challenge]/page";
 
-import { useModels } from "../features/scene/models/use-models";
+import { useModelsData } from "../features/scene/models/use-models";
 
 export default function Guided() {
   return (
@@ -33,10 +33,10 @@ const Page = () => {
   const ground = useTestingNewStore()((state) => state.ground.data);
   const lookAtTarget = useTestingNewStore()((state) => state.lookAtTarget.data);
   const setObjectRotation = useTestingNewStore()(
-    (state) => state.object.setObjectRotation
+    (state) => state.object.setRotation
   );
   const setObjectPosition = useTestingNewStore()(
-    (state) => state.object.setObjectPosition
+    (state) => state.object.setPosition
   );
   const setCameraDesiredPosition = useTestingNewStore()(
     (state) => state.camera.setCameraDesiredPosition
@@ -48,7 +48,7 @@ const Page = () => {
     (state) => state.lookAtTarget.setLookAtTargetPosition
   );
 
-  const models = useModels();
+  const models = useModelsData();
 
   const handleCameraDataChange = (data: CameraData) => {
     setCamera({
@@ -75,7 +75,7 @@ const Page = () => {
   const groundModel = useMemo(() => {
     const groundData = selectedAnimationPreset?.animationPresetData.groundData;
     if (!groundData) return null;
-    return modelRepo.getLocalModel(
+    return localPrimitiveModelsRepo.getLocalModel(
       groundData.model?.modelId || "",
       groundData.position,
       groundData.scale,
@@ -88,7 +88,7 @@ const Page = () => {
     const lookAtTargetData =
       selectedAnimationPreset?.animationPresetData.lookAtTargetData;
     if (!lookAtTargetData) return null;
-    return modelRepo.getLocalModel(
+    return localPrimitiveModelsRepo.getLocalModel(
       lookAtTargetData.model.modelId,
       lookAtTargetData.position,
       lookAtTargetData.scale,
@@ -101,7 +101,7 @@ const Page = () => {
       selectedAnimationPreset?.animationPresetData.staticBackground;
     if (!staticBackgroundData) return null;
     const models = staticBackgroundData.models.map((model) =>
-      modelRepo.getLocalModel(
+      localPrimitiveModelsRepo.getLocalModel(
         model.modelId,
         model.position,
         model.scale,
@@ -115,7 +115,7 @@ const Page = () => {
     const lightData = selectedAnimationPreset?.animationPresetData.lightData;
     if (!lightData) return null;
     return lightData.lights.map((light) =>
-      modelRepo.getLightModel(
+      localPrimitiveModelsRepo.getLightModel(
         light.type,
         light.position,
         light.scale,
@@ -161,7 +161,7 @@ const Page = () => {
           objectScale={object.scale}
           groundPosition={ground.position}
           model={
-            <ModelGetter
+            <ModelLoader
               model={model}
               position={
                 selectedAnimationPreset?.animationPresetData.modelData.position
@@ -190,7 +190,7 @@ const Page = () => {
           lookAtTarget={lookAtTarget.position}
           showTarget={lookAtTarget.isShowTargetMarker}
           model={
-            <ModelGetter
+            <ModelLoader
               model={model}
               position={
                 selectedAnimationPreset?.animationPresetData.modelData.position
@@ -216,7 +216,6 @@ const Page = () => {
           lookAtMode={lookAtTarget.mode}
           isShowGizmos={false}
         />
-
         <CameraDataCollector onCameraDataChange={handleCameraDataChange} />
       </Canvas>
     </ContentLibrarySection>
