@@ -48,6 +48,7 @@ import { useModelsData } from "../features/scene/models/use-models";
 import { StoreApi } from "zustand";
 import { AnimationKeyframe } from "../features/animation/types/types";
 import { AnimationPresetLocalCreation } from "../types2";
+import ModelGetterLoader from "../features/scene/components/model-getter-loader";
 
 export default function PresetCreatorPage() {
   return (
@@ -80,6 +81,9 @@ const Page = () => {
   const setObjectModel = useTestingNewStore((state) => state.setObjectModel);
   const setObjectPosition = useTestingNewStore(
     (state) => state.setObjectPosition
+  );
+  const staticBackground = useTestingNewStore(
+    (state) => state.staticBackground
   );
   const ground = useTestingNewStore((state) => state.ground.data);
 
@@ -140,11 +144,11 @@ const Page = () => {
 
   const groundModel = useMemo(() => {
     return localPrimitiveModelsRepo.getLocalModel("local-grid");
-  }, [ground.position]);
+  }, [ground.model.position]);
 
   const model = useMemo(() => {
-    return <ModelLoader model={object.model} />;
-  }, [object.model, object.position, object.scale, object.rotation]);
+    return <ModelGetterLoader modelId={object.model.modelId} />;
+  }, [object.model.modelId, object.position, object.scale, object.rotation]);
 
   const staticBackgroundModels = useMemo(() => {
     return <></>;
@@ -163,17 +167,17 @@ const Page = () => {
   const { setLocalAnimationPreset } = useLocalAnimationPresetsStore();
   const { getModelData } = useModelsData();
 
-  useEffect(() => {
-    const loadModel = async () => {
-      const model = await getModelData(
-        currentPreset.animationPresetData.modelData.modelId
-      );
-      if (model) {
-        setObjectModel(model);
-      }
-    };
-    loadModel();
-  }, [currentPreset.animationPresetData]);
+  // useEffect(() => {
+  //   const loadModel = async () => {
+  //     const model = await getModelData(
+  //       currentPreset.animationPresetData.modelData.modelId
+  //     );
+  //     if (model) {
+  //       setObjectModel(model);
+  //     }
+  //   };
+  //   loadModel();
+  // }, [currentPreset.animationPresetData]);
 
   // persist seperately
   // keyframes
@@ -186,17 +190,17 @@ const Page = () => {
           keyframes: keyframes,
         },
         modelData: {
-          modelId: object.model.id,
+          modelId: object.model.modelId,
         },
         groundData: {
-          modelId: ground.model.id,
+          modelId: ground.model.modelId,
         },
         staticBackground: {
           models: [],
         },
         lookAtTargetData: {
           model: {
-            modelId: lookAtTarget.model.id,
+            modelId: lookAtTarget.model.modelId,
           },
         },
         lightData: {
@@ -291,7 +295,7 @@ const Page = () => {
             <TestingScene
               objectPosition={object.position}
               objectScale={object.scale}
-              groundPosition={ground.position}
+              groundPosition={ground.model.position ?? { x: 0, y: 0, z: 0 }}
               objectRotation={object.rotation}
               lookAtTarget={lookAtTarget.position}
               showTarget={lookAtTarget.isShowTargetMarker}

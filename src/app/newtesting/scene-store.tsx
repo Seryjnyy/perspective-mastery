@@ -177,7 +177,7 @@ export interface ObjectSlice {
   object: {
     data: ObjectData;
   };
-  setObjectModel: (model: Model) => void;
+  setObjectModel: (modelId: string) => void;
   setObjectPosition: (position: Vec3) => void;
   setObjectRotation: (rotation: Vec3) => void;
   setObjectScale: (scale: Vec3) => void;
@@ -185,11 +185,14 @@ export interface ObjectSlice {
   getObjectDefaults: () => ObjectData;
 }
 
+// TODO : Add functions to allow setting the models initial values. (the values can be used to displace the model, or scale it, rotate it)
 const objectDefaults: ObjectData = {
   position: { x: 0, y: 0.5, z: 0 },
   rotation: { x: 0, y: 0, z: 0 },
   scale: { x: 1, y: 1, z: 1 },
-  model: localCube,
+  model: {
+    modelId: LOCAL_OBJECT_MODELS.CUBE,
+  },
 };
 
 export const createObjectSlice: StateCreator<
@@ -203,7 +206,7 @@ export const createObjectSlice: StateCreator<
   },
   setObjectModel: (patch) =>
     set((state) => {
-      state.object.data.model = patch;
+      state.object.data.model.modelId = patch;
     }),
   setObjectPosition: (patch) =>
     set((state) => {
@@ -263,7 +266,7 @@ export const createGroundSlice: StateCreator<
 });
 
 export type StaticBackgroundData = {
-  models: Model[];
+  models: ModelData[];
   position?: Vec3;
   rotation?: Vec3;
   scale?: Vec3;
@@ -273,8 +276,8 @@ export interface StaticBackgroundSlice {
   staticBackground: {
     data: StaticBackgroundData;
   };
-  addModelToStaticBackground: (model: Model) => void;
-  removeModelFromStaticBackground: (model: Model) => void;
+  addModelToStaticBackground: (model: ModelData) => void;
+  removeModelFromStaticBackground: (model: ModelData) => void;
   resetStaticBackground: () => void;
 }
 
@@ -294,7 +297,7 @@ export const createStaticBackgroundSlice: StateCreator<
     set((state) => {
       const isNotInList =
         state.staticBackground.data.models.find(
-          (model) => model.id == patch.id
+          (model) => model.modelId == patch.modelId
         ) == null;
       if (isNotInList) {
         state.staticBackground.data.models = [
@@ -307,7 +310,7 @@ export const createStaticBackgroundSlice: StateCreator<
     set((state) => {
       state.staticBackground.data.models =
         state.staticBackground.data.models.filter(
-          (model) => model.id != patch.id
+          (model) => model.modelId != patch.modelId
         );
     }),
   resetStaticBackground: () =>

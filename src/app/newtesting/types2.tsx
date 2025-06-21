@@ -30,6 +30,10 @@ type AnimationData = {
 //  but scale isn't animated so maybe it should be here
 //  and maybe rotation to allow for initial rotation
 // Actually scratch the above
+
+/**
+ * Defines a model. It provides a model id and initial model position/rotation/scale that can be applied to the loaded in model.
+ */
 type ModelData = {
   modelId: string;
   position?: Vec3;

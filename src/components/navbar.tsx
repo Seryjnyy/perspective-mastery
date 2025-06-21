@@ -157,7 +157,9 @@ export default function Navbar() {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50  border max-h-[36px] h-[36px] ">
-      <div className="h-full w-full flex items-center justify-end px-2">
+      <div className="h-full w-full flex items-center justify-end px-2 gap-3">
+        <Link href={"/"}>home</Link>
+        <Link href={"/newtesting/recorder"}>recorder</Link>
         <Button size={"icon"} variant={"outline"}>
           <HamburgerMenuIcon />
         </Button>
