@@ -1,3 +1,4 @@
+"use client";
 import { Group } from "three";
 import { AnimationKeyframe } from "./features/animation/types/types";
 import { Vec3 } from "./scene-store";
@@ -5,6 +6,7 @@ import { boxRotationsYaxis } from "./features/animation/presets/box-rotation/y-a
 import {
   localCube,
   localCylinder,
+  localGrid,
   localHead,
   Model,
   ModelSource,
@@ -36,13 +38,6 @@ type AnimationData = {
  */
 type ModelData = {
   modelId: string;
-  position?: Vec3;
-  rotation?: Vec3;
-  scale?: Vec3;
-};
-
-type GroundData = {
-  model?: ModelData;
   position?: Vec3;
   rotation?: Vec3;
   scale?: Vec3;
@@ -91,7 +86,13 @@ type AnimationPresetData = {
   lightData: LightData;
 };
 
-type Difficulty = "easy" | "medium" | "hard" | "extra hard";
+export type Difficulty = "easy" | "medium" | "hard" | "extra hard";
+export const availableDifficulties: Difficulty[] = [
+  "easy",
+  "medium",
+  "hard",
+  "extra hard",
+];
 
 type AnimationPresetLocalModel = AnimationPreset & {
   metadata: {
@@ -107,7 +108,7 @@ type AnimationPresetLocalModel = AnimationPreset & {
   };
 };
 
-type AnimationPresetLocalCreationMetadata = Omit<
+export type AnimationPresetLocalCreationMetadata = Omit<
   AnimationPresetLocalModel["metadata"],
   "createdAt" | "lastUsedAt" | "isFavorite" | "source"
 >;
@@ -136,6 +137,7 @@ const testAnimationPresets: AnimationPresetLocalModel[] = [
       animationData: {
         keyframes: [
           {
+            id: "1",
             t: 0,
             config: {
               objectRotation: { x: 0, y: 0, z: 0 },
@@ -146,6 +148,7 @@ const testAnimationPresets: AnimationPresetLocalModel[] = [
             },
           },
           {
+            id: "2",
             t: 1,
             config: {
               objectRotation: { x: 0, y: 0, z: 0 },
@@ -161,9 +164,7 @@ const testAnimationPresets: AnimationPresetLocalModel[] = [
         modelId: localCube.id,
       },
       groundData: {
-        model: {
-          modelId: "local-grid",
-        },
+        modelId: localGrid.id,
       },
       staticBackground: {
         models: [],
@@ -190,13 +191,14 @@ const testAnimationPresets: AnimationPresetLocalModel[] = [
       source: "local",
     },
   },
-  ...boxRotationsYaxis,
+  // ...boxRotationsYaxis,
   {
     id: "2",
     animationPresetData: {
       animationData: {
         keyframes: [
           {
+            id: "1",
             t: 0,
             config: {
               objectRotation: { x: 0, y: 0, z: 0 },
@@ -207,6 +209,7 @@ const testAnimationPresets: AnimationPresetLocalModel[] = [
             },
           },
           {
+            id: "2",
             t: 0.99,
             config: {
               objectRotation: { x: 0, y: 0, z: 0 },
@@ -217,6 +220,7 @@ const testAnimationPresets: AnimationPresetLocalModel[] = [
             },
           },
           {
+            id: "3",
             t: 1,
             config: {
               objectRotation: { x: 0, y: 0, z: 0 },
@@ -232,9 +236,7 @@ const testAnimationPresets: AnimationPresetLocalModel[] = [
         modelId: localCylinder.id,
       },
       groundData: {
-        model: {
-          modelId: "local-grid",
-        },
+        modelId: localGrid.id,
       },
       staticBackground: {
         models: [
@@ -281,6 +283,7 @@ const testAnimationPresets: AnimationPresetLocalModel[] = [
       animationData: {
         keyframes: [
           {
+            id: "1",
             t: 0,
             config: {
               objectRotation: { x: 0, y: 0, z: 0 },
@@ -291,6 +294,7 @@ const testAnimationPresets: AnimationPresetLocalModel[] = [
             },
           },
           {
+            id: "2",
             t: 0.99,
             config: {
               objectRotation: { x: 0, y: 0, z: 0 },
@@ -301,6 +305,7 @@ const testAnimationPresets: AnimationPresetLocalModel[] = [
             },
           },
           {
+            id: "3",
             t: 1,
             config: {
               objectRotation: { x: 0, y: 0, z: 0 },
@@ -316,9 +321,7 @@ const testAnimationPresets: AnimationPresetLocalModel[] = [
         modelId: localHead.id,
       },
       groundData: {
-        model: {
-          modelId: "local-grid",
-        },
+        modelId: localGrid.id,
       },
       staticBackground: {
         models: [
@@ -365,6 +368,7 @@ const testAnimationPresets: AnimationPresetLocalModel[] = [
       animationData: {
         keyframes: [
           {
+            id: "1",
             t: 0, // Start
             config: {
               objectRotation: { x: 0, y: 0, z: 0 },
@@ -375,6 +379,7 @@ const testAnimationPresets: AnimationPresetLocalModel[] = [
             },
           },
           {
+            id: "2",
             t: 0.33,
             config: {
               objectRotation: { x: 0, y: 0, z: 0 },
@@ -385,6 +390,7 @@ const testAnimationPresets: AnimationPresetLocalModel[] = [
             },
           },
           {
+            id: "3",
             t: 0.66,
             config: {
               objectRotation: { x: 0, y: 0, z: 0 },
@@ -395,6 +401,7 @@ const testAnimationPresets: AnimationPresetLocalModel[] = [
             },
           },
           {
+            id: "4",
             t: 1, // End (loops back to start if animated continuously)
             config: {
               objectRotation: { x: 0, y: 0, z: 0 },
@@ -410,9 +417,7 @@ const testAnimationPresets: AnimationPresetLocalModel[] = [
         modelId: localHead.id,
       },
       groundData: {
-        model: {
-          modelId: "local-grid",
-        },
+        modelId: localGrid.id,
       },
       staticBackground: {
         models: [
@@ -459,6 +464,7 @@ const testAnimationPresets: AnimationPresetLocalModel[] = [
       animationData: {
         keyframes: [
           {
+            id: "1",
             t: 0, // Start
             config: {
               objectRotation: { x: 0, y: 0, z: 0 },
@@ -469,6 +475,7 @@ const testAnimationPresets: AnimationPresetLocalModel[] = [
             },
           },
           {
+            id: "2",
             t: 0.25, // Zoom In
             config: {
               objectRotation: { x: 0, y: 0, z: 0 },
@@ -479,6 +486,7 @@ const testAnimationPresets: AnimationPresetLocalModel[] = [
             },
           },
           {
+            id: "3",
             t: 0.5, // Pan Left
             config: {
               objectRotation: { x: 0, y: 0, z: 0 },
@@ -489,6 +497,7 @@ const testAnimationPresets: AnimationPresetLocalModel[] = [
             },
           },
           {
+            id: "4",
             t: 0.75, // Pan Right
             config: {
               objectRotation: { x: 0, y: 0, z: 0 },
@@ -499,6 +508,7 @@ const testAnimationPresets: AnimationPresetLocalModel[] = [
             },
           },
           {
+            id: "5",
             t: 1, // Zoom Out
             config: {
               objectRotation: { x: 0, y: 0, z: 0 },
@@ -514,9 +524,7 @@ const testAnimationPresets: AnimationPresetLocalModel[] = [
         modelId: localHead.id,
       },
       groundData: {
-        model: {
-          modelId: "local-grid",
-        },
+        modelId: localGrid.id,
       },
       staticBackground: {
         models: [
@@ -563,6 +571,7 @@ const testAnimationPresets: AnimationPresetLocalModel[] = [
       animationData: {
         keyframes: [
           {
+            id: "1",
             t: 0, // Start
             config: {
               objectRotation: { x: 0, y: 0, z: 0 },
@@ -573,6 +582,7 @@ const testAnimationPresets: AnimationPresetLocalModel[] = [
             },
           },
           {
+            id: "2",
             t: 0.5, // Halfway through rotation
             config: {
               objectRotation: { x: 0, y: Math.PI, z: 0 }, // Rotate 180 degrees around Y
@@ -583,6 +593,7 @@ const testAnimationPresets: AnimationPresetLocalModel[] = [
             },
           },
           {
+            id: "3",
             t: 1, // Full rotation
             config: {
               objectRotation: { x: 0, y: Math.PI * 2, z: 0 }, // Rotate 360 degrees around Y
@@ -598,9 +609,7 @@ const testAnimationPresets: AnimationPresetLocalModel[] = [
         modelId: localHead.id,
       },
       groundData: {
-        model: {
-          modelId: "local-grid",
-        },
+        modelId: localGrid.id,
       },
       staticBackground: {
         models: [
@@ -648,6 +657,5 @@ export {
   type AnimationPresetLocalModel,
   type AnimationPresetData,
   type ModelData,
-  type GroundData,
   type StaticBackground,
 };

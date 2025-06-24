@@ -445,7 +445,7 @@ export default function ContentLibrarySection({
               if (selectedAnimationPreset) {
                 // setSelectedAnimationPreset(null);
                 // TODO
-                router.push(`guided/${selectedAnimationPreset.id}`);
+                router.push(`challenges/${selectedAnimationPreset.id}`);
               }
             }}
           >

@@ -1,3 +1,4 @@
+"use client";
 import { createStore, StateCreator, StoreApi } from "zustand/vanilla";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
@@ -229,6 +230,7 @@ export const createObjectSlice: StateCreator<
 
 export type GroundData = {
   model: ModelData;
+  position: Vec3;
 };
 
 export interface GroundSlice {
@@ -244,6 +246,7 @@ const groundDefaults: GroundData = {
   model: {
     modelId: LOCAL_GROUND_MODELS.GRID,
   },
+  position: { x: 0, y: 0.5, z: 0 },
 };
 export const createGroundSlice: StateCreator<
   SceneState, // full state
@@ -319,11 +322,45 @@ export const createStaticBackgroundSlice: StateCreator<
     }),
 });
 
+export type PersistenceData = {
+  randomValueToForceStoreToPersist: number | null;
+};
+
+export interface PersistenceSlice {
+  persistence: {
+    data: PersistenceData;
+  };
+  forcePersist: () => void;
+}
+
+const persistenceDefaults: PersistenceData = {
+  randomValueToForceStoreToPersist: null,
+};
+
+/**
+ * This slice is used to force the store to persist. It has a method to set a random non important value so it forces the store to persist.
+ */
+export const createPersistenceSlice: StateCreator<
+  SceneState, // full state
+  [["zustand/immer", never]], // middleware
+  [], // no other middleware
+  PersistenceSlice // this slice
+> = (set) => ({
+  persistence: {
+    data: persistenceDefaults,
+  },
+  forcePersist: () =>
+    set((state) => {
+      state.persistence.data.randomValueToForceStoreToPersist = Math.random();
+    }),
+});
+
 export type SceneState = CameraSlice &
   LookAtTargetSlice &
   ObjectSlice &
   GroundSlice &
-  StaticBackgroundSlice;
+  StaticBackgroundSlice &
+  PersistenceSlice;
 
 const createSceneStoreInitializer = (
   set: StoreApi<SceneState>["setState"],
@@ -335,18 +372,42 @@ const createSceneStoreInitializer = (
   ...createObjectSlice(set, get, api),
   ...createGroundSlice(set, get, api),
   ...createStaticBackgroundSlice(set, get, api),
+  ...createPersistenceSlice(set, get, api),
 });
 
+export const SCENE_STORE_NAME = "scene-store";
+
+export type StorageMethod = "localStorage";
+
+const storageMethod: StorageMethod = "localStorage";
+
+export const getStorageImplementation = (storageMethod: StorageMethod) => {
+  if (storageMethod === "localStorage") {
+    return localStorage;
+  } else {
+    throw new Error("Unsupported storage method");
+  }
+};
+/**
+ *
+ * A persisted store without id would be like a default.
+ * A persisted store with id creates a store that can later be retrieved.
+ * A non-persisted store without id or with id is the same thing, it doesn't matter.
+ *
+ * @param persisted
+ * @param id Provide id to access a specific store.
+ */
 export const createSceneStore = (
   persisted = false,
-  storeName = "scene-store"
+  id = ""
 ): StoreApi<SceneState> => {
   // The core middleware chain
   const initializer = immer(createSceneStoreInitializer);
 
   if (persisted) {
     const persistedInitializer = persist(initializer, {
-      name: "scene-storefsfew",
+      name: `${SCENE_STORE_NAME}-${id}`,
+      storage: createJSONStorage(() => getStorageImplementation(storageMethod)),
     }) as unknown as StateCreator<SceneState, [], [], SceneState>;
 
     return createStore<SceneState>(persistedInitializer);
@@ -355,6 +416,19 @@ export const createSceneStore = (
   return createStore<SceneState>(
     initializer
   ) as unknown as StoreApi<SceneState>;
+};
+
+/**
+ * Deletes a persisted scene store.
+ * @param id The id of the scene store to delete.
+ * @throws Error if the storage method is not supported.
+ */
+export const deletePersistedSceneStore = (id: string) => {
+  if (storageMethod === "localStorage") {
+    localStorage.removeItem(`${SCENE_STORE_NAME}-${id}`);
+  } else {
+    throw new Error("Unsupported storage method for deletion");
+  }
 };
 
 // export const createSceneStore = () =>
@@ -367,13 +441,13 @@ export const createSceneStore = (
 //     }))
 //   );
 
-export const createPersistedSceneStore = (name: string) =>
-  create<SceneState>()(
-    persist(immer(createSceneStoreInitializer), {
-      name: name,
-      storage: createJSONStorage(() => localStorage),
-    })
-  );
+// export const createPersistedSceneStore = (name: string) =>
+//     create<SceneState>()(
+//         persist(immer(createSceneStoreInitializer), {
+//             name: name,
+//             storage: createJSONStorage(() => localStorage),
+//         })
+//     );
 
 // create store
 // it will store the zustand store name in the local storage

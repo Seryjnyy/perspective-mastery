@@ -1,3 +1,4 @@
+"use client";
 export type AnimationKeyFrameConfig = {
   objectRotation: { x: number; y: number; z: number };
   objectPosition: { x: number; y: number; z: number };
@@ -7,6 +8,7 @@ export type AnimationKeyFrameConfig = {
 };
 
 export type AnimationKeyframe = {
+  id: string; // uuid
   t: number; // from 0 to 1
   config: AnimationKeyFrameConfig;
 };

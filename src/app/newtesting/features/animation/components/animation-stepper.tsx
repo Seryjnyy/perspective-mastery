@@ -1,145 +1,147 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
+"use client";
+import {Button} from "@/components/ui/button";
+import {Input} from "@/components/ui/input";
+import {Progress} from "@/components/ui/progress";
 import {
-  CaretLeftIcon,
-  CaretRightIcon,
-  ReloadIcon,
+    CaretLeftIcon,
+    CaretRightIcon,
+    ReloadIcon,
 } from "@radix-ui/react-icons";
-import { useState } from "react";
-import { AnimationKeyframe } from "../types/types";
-import { lerp } from "../utils/utils";
+import {useState} from "react";
+import {AnimationKeyframe} from "../types/types";
+import {lerp} from "../utils/utils";
 
 export function AnimationStepper({
-  keyframes,
-  apply,
-  recommendedSteps = 10,
-  canChangeSteps,
-  onProgressChange = () => {},
-  enabled = true,
-}: {
-  keyframes: AnimationKeyframe[];
-  recommendedSteps?: number;
-  canChangeSteps: boolean;
-  onProgressChange?: (completed: boolean) => void;
-  apply: (state: any) => void;
-  enabled?: boolean;
+                                     keyframes,
+                                     apply,
+                                     recommendedSteps = 10,
+                                     canChangeSteps,
+                                     onProgressChange = () => {
+                                     },
+                                     enabled = true,
+                                 }: {
+    keyframes: AnimationKeyframe[];
+    recommendedSteps?: number;
+    canChangeSteps: boolean;
+    onProgressChange?: (completed: boolean) => void;
+    apply: (state: any) => void;
+    enabled?: boolean;
 }) {
-  const [steps, setSteps] = useState(recommendedSteps);
-  const [step, setStep] = useState(0);
+    const [steps, setSteps] = useState(recommendedSteps);
+    const [step, setStep] = useState(0);
 
-  const updateStep = (by: number) => {
-    let newStep = step + by;
-    if (newStep < 0) newStep = 0;
-    if (newStep > steps) newStep = steps;
+    const updateStep = (by: number) => {
+        let newStep = step + by;
+        if (newStep < 0) newStep = 0;
+        if (newStep > steps) newStep = steps;
 
-    setStep(newStep);
-    const newProgress = newStep / steps;
+        setStep(newStep);
+        const newProgress = newStep / steps;
 
-    onProgressChange(newProgress === 1);
+        onProgressChange(newProgress === 1);
 
-    apply(interpolateKeyframes(keyframes, newProgress));
-  };
+        apply(interpolateKeyframes(keyframes, newProgress));
+    };
 
-  return (
-    <div className="max-w-[200px] flex flex-col gap-2">
-      {canChangeSteps && (
-        <Input
-          type={"number"}
-          value={steps}
-          onChange={(e) => setSteps(parseInt(e.target.value))}
-        />
-      )}
-      <Progress value={(step / steps) * 100} />
-      <div className="flex flex-row gap-2 w-full justify-between">
-        <Button
-          size={"sm"}
-          variant={"outline"}
-          disabled={step == 0 || !enabled}
-          onClick={() => {
-            updateStep(-1);
-          }}
-        >
-          <CaretLeftIcon />
-        </Button>
-        <Button
-          size={"sm"}
-          variant={"ghost"}
-          disabled={!enabled}
-          onClick={() => {
-            updateStep(-steps);
-          }}
-        >
-          <ReloadIcon />
-        </Button>
-        <Button
-          size={"sm"}
-          variant={"outline"}
-          disabled={step == steps || !enabled}
-          onClick={() => {
-            updateStep(1);
-          }}
-        >
-          <CaretRightIcon />
-        </Button>
-      </div>
-    </div>
-  );
+    return (
+        <div className="max-w-[200px] flex flex-col gap-2">
+            {canChangeSteps && (
+                <Input
+                    type={"number"}
+                    value={steps}
+                    onChange={(e) => setSteps(parseInt(e.target.value))}
+                />
+            )}
+            <Progress value={(step / steps) * 100}/>
+            <div className="flex flex-row gap-2 w-full justify-between">
+                <Button
+                    size={"sm"}
+                    variant={"outline"}
+                    disabled={step == 0 || !enabled}
+                    onClick={() => {
+                        updateStep(-1);
+                    }}
+                >
+                    <CaretLeftIcon/>
+                </Button>
+                <Button
+                    size={"sm"}
+                    variant={"ghost"}
+                    disabled={!enabled}
+                    onClick={() => {
+                        updateStep(-steps);
+                    }}
+                >
+                    <ReloadIcon/>
+                </Button>
+                <Button
+                    size={"sm"}
+                    variant={"outline"}
+                    disabled={step == steps || !enabled}
+                    onClick={() => {
+                        updateStep(1);
+                    }}
+                >
+                    <CaretRightIcon/>
+                </Button>
+            </div>
+        </div>
+    );
 }
 
 function interpolateKeyframes(keyframes: AnimationKeyframe[], t: number) {
-  // Find the two keyframes t is between
-  let i = 0;
-  while (i < keyframes.length - 1 && t > keyframes[i + 1].t) i++;
+    // Find the two keyframes t is between
+    let i = 0;
+    while (i < keyframes.length - 1 && t > keyframes[i + 1].t) i++;
 
-  const kf1 = keyframes[i];
-  const kf2 = keyframes[i + 1] ?? kf1;
-  const localT = (t - kf1.t) / (kf2.t - kf1.t || 1);
+    const kf1 = keyframes[i];
+    const kf2 = keyframes[i + 1] ?? kf1;
+    const localT = (t - kf1.t) / (kf2.t - kf1.t || 1);
 
-  // Interpolate rotation
-  const rot1 = kf1.config.objectRotation;
-  const rot2 = kf2.config.objectRotation;
-  const newRotatation = {
-    x: lerp(rot1.x, rot2.x, localT),
-    y: lerp(rot1.y, rot2.y, localT),
-    z: lerp(rot1.z, rot2.z, localT),
-  };
+    // Interpolate rotation
+    const rot1 = kf1.config.objectRotation;
+    const rot2 = kf2.config.objectRotation;
+    const newRotatation = {
+        x: lerp(rot1.x, rot2.x, localT),
+        y: lerp(rot1.y, rot2.y, localT),
+        z: lerp(rot1.z, rot2.z, localT),
+    };
 
-  // Interpolate position
-  const pos1 = kf1.config.objectPosition;
-  const pos2 = kf2.config.objectPosition;
-  const newPosition = {
-    x: lerp(pos1.x, pos2.x, localT),
-    y: lerp(pos1.y, pos2.y, localT),
-    z: lerp(pos1.z, pos2.z, localT),
-  };
-  // Interpolate camera position
-  const camPos1 = kf1.config.cameraPosition;
-  const camPos2 = kf2.config.cameraPosition;
-  const newCameraPosition = {
-    x: lerp(camPos1.x, camPos2.x, localT),
-    y: lerp(camPos1.y, camPos2.y, localT),
-    z: lerp(camPos1.z, camPos2.z, localT),
-  };
-  // Interpolate camera FOV
-  const fov1 = kf1.config.cameraFov;
-  const fov2 = kf2.config.cameraFov;
-  const newCameraFov = lerp(fov1, fov2, localT);
+    // Interpolate position
+    const pos1 = kf1.config.objectPosition;
+    const pos2 = kf2.config.objectPosition;
+    const newPosition = {
+        x: lerp(pos1.x, pos2.x, localT),
+        y: lerp(pos1.y, pos2.y, localT),
+        z: lerp(pos1.z, pos2.z, localT),
+    };
+    // Interpolate camera position
+    const camPos1 = kf1.config.cameraPosition;
+    const camPos2 = kf2.config.cameraPosition;
+    const newCameraPosition = {
+        x: lerp(camPos1.x, camPos2.x, localT),
+        y: lerp(camPos1.y, camPos2.y, localT),
+        z: lerp(camPos1.z, camPos2.z, localT),
+    };
+    // Interpolate camera FOV
+    const fov1 = kf1.config.cameraFov;
+    const fov2 = kf2.config.cameraFov;
+    const newCameraFov = lerp(fov1, fov2, localT);
 
-  // Interpolate lookAtTargetPosition
-  const lookatPos1 = kf1.config.lookAtTargetPosition;
-  const lookatPos2 = kf2.config.lookAtTargetPosition;
-  const newLookAtTargetPos = {
-    x: lerp(lookatPos1.x, lookatPos2.x, localT),
-    y: lerp(lookatPos1.y, lookatPos2.y, localT),
-    z: lerp(lookatPos1.z, lookatPos2.z, localT),
-  };
+    // Interpolate lookAtTargetPosition
+    const lookatPos1 = kf1.config.lookAtTargetPosition;
+    const lookatPos2 = kf2.config.lookAtTargetPosition;
+    const newLookAtTargetPos = {
+        x: lerp(lookatPos1.x, lookatPos2.x, localT),
+        y: lerp(lookatPos1.y, lookatPos2.y, localT),
+        z: lerp(lookatPos1.z, lookatPos2.z, localT),
+    };
 
-  return {
-    objectRotation: newRotatation,
-    objectPosition: newPosition,
-    cameraPosition: newCameraPosition,
-    cameraFov: newCameraFov,
-    lookAtTargetPosition: newLookAtTargetPos,
-  };
+    return {
+        objectRotation: newRotatation,
+        objectPosition: newPosition,
+        cameraPosition: newCameraPosition,
+        cameraFov: newCameraFov,
+        lookAtTargetPosition: newLookAtTargetPos,
+    };
 }

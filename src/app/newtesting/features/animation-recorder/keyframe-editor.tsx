@@ -15,10 +15,12 @@ import { Switch } from "@/components/ui/switch";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { ScrollAreaThumb } from "@radix-ui/react-scroll-area";
 import { Slider } from "@/components/ui/slider";
+import { v4 as uuidv4 } from "uuid";
 
 const defaultVec3 = (): Vec3 => ({ x: 0, y: 0, z: 0 });
 
 const defaultKeyframe = (): AnimationKeyframe => ({
+  id: uuidv4(),
   t: 0,
   config: {
     objectRotation: defaultVec3(),
@@ -118,6 +120,7 @@ export default function KeyframeEditor({
   const createKeyframeFromCurrentState = () => {
     const state = getCurrentState();
     const keyframe: AnimationKeyframe = {
+      id: uuidv4(),
       t: progress,
       config: {
         ...state,
@@ -184,7 +187,7 @@ export default function KeyframeEditor({
           </div>
           <div className="border p-2 m-2">
             <AnimationPreviewer
-              keyframes={keyframes.sort((a, b) => a.t - b.t)}
+              keyframes={keyframes.toSorted((a, b) => a.t - b.t)}
               apply={(state) => {
                 applyKeyframe(
                   state.objectRotation,

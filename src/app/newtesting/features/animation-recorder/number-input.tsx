@@ -1,21 +1,22 @@
+"use client";
 import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { isValidNumber } from "@/lib/utils";
 
-type NumberInputProps = {
+interface NumberInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   value: number;
-  onChange: (val: number) => void;
+  onValueChange?: (val: number) => boolean | void;
   step?: number;
   min?: number;
   max?: number;
   placeholder?: string;
-};
+}
 
 export function NumberInput({
   label,
   value,
-  onChange,
+  onValueChange,
   step = 1,
   min,
   max,
@@ -33,7 +34,10 @@ export function NumberInput({
       let final = parsed;
       if (min !== undefined) final = Math.max(final, min);
       if (max !== undefined) final = Math.min(final, max);
-      onChange(final);
+      const wasSetCorrectly = onValueChange?.(final);
+      if (wasSetCorrectly === false) {
+        setInternal(value.toString()); // reset to previous valid value
+      }
     } else {
       console.log("resetting to previous valid value");
       setInternal(value.toString()); // reset to previous valid value

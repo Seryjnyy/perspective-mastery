@@ -1,11 +1,5 @@
 "use client";
 import ContentLibrarySection from "@/app/newtesting/content-library-section";
-import {
-  CameraControlsInScene,
-  CameraDataCollector,
-  SceneStoreProvider,
-  useTestingNewStore,
-} from "@/app/newtesting/page";
 import { CameraData } from "@/app/newtesting/scene-store";
 import { Canvas } from "@react-three/fiber";
 import { useMemo, useState } from "react";
@@ -17,6 +11,13 @@ import { AnimationPresetLocalModel } from "../types2";
 import { TestingScene } from "./[challenge]/page";
 
 import { useModelsData } from "../features/scene/models/use-models";
+import {
+  CameraControlsInScene,
+  CameraDataCollector,
+  SceneStoreProvider,
+  useTestingNewStore,
+} from "../page-content";
+import ModelGetterLoader from "../features/scene/components/model-getter-loader";
 
 export default function Guided() {
   return (
@@ -27,25 +28,25 @@ export default function Guided() {
 }
 
 const Page = () => {
-  const camera = useTestingNewStore()((state) => state.camera.data);
-  const setCamera = useTestingNewStore()((state) => state.camera.setCamera);
-  const object = useTestingNewStore()((state) => state.object.data);
-  const ground = useTestingNewStore()((state) => state.ground.data);
-  const lookAtTarget = useTestingNewStore()((state) => state.lookAtTarget.data);
-  const setObjectRotation = useTestingNewStore()(
-    (state) => state.object.setRotation
+  const camera = useTestingNewStore((state) => state.camera.data);
+  const setCamera = useTestingNewStore((state) => state.setCamera);
+  const object = useTestingNewStore((state) => state.object.data);
+  const ground = useTestingNewStore((state) => state.ground.data);
+  const lookAtTarget = useTestingNewStore((state) => state.lookAtTarget.data);
+  const setObjectRotation = useTestingNewStore(
+    (state) => state.setObjectRotation
   );
-  const setObjectPosition = useTestingNewStore()(
-    (state) => state.object.setPosition
+  const setObjectPosition = useTestingNewStore(
+    (state) => state.setObjectPosition
   );
-  const setCameraDesiredPosition = useTestingNewStore()(
-    (state) => state.camera.setCameraDesiredPosition
+  const setCameraDesiredPosition = useTestingNewStore(
+    (state) => state.setCameraDesiredPosition
   );
-  const setCameraDesiredFov = useTestingNewStore()(
-    (state) => state.camera.setCameraDesiredFov
+  const setCameraDesiredFov = useTestingNewStore(
+    (state) => state.setCameraDesiredFov
   );
-  const setLookAtTargetPosition = useTestingNewStore()(
-    (state) => state.lookAtTarget.setLookAtTargetPosition
+  const setLookAtTargetPosition = useTestingNewStore(
+    (state) => state.setLookAtTargetPosition
   );
 
   const models = useModelsData();
@@ -69,17 +70,26 @@ const Page = () => {
     const modelData = selectedAnimationPreset?.animationPresetData.modelData;
     if (modelData == null) return;
 
-    return models.getModel(modelData.modelId);
+    return (
+      <ModelGetterLoader
+        modelId={modelData.modelId}
+        position={modelData.position}
+        rotation={modelData.rotation}
+        scale={modelData.scale}
+      />
+    );
   }, [selectedAnimationPreset]);
 
   const groundModel = useMemo(() => {
     const groundData = selectedAnimationPreset?.animationPresetData.groundData;
     if (!groundData) return null;
-    return localPrimitiveModelsRepo.getLocalModel(
-      groundData.model?.modelId || "",
-      groundData.position,
-      groundData.scale,
-      groundData.rotation
+    return (
+      <ModelGetterLoader
+        modelId={groundData.modelId}
+        position={groundData.position}
+        rotation={groundData.rotation}
+        scale={groundData.scale}
+      />
     );
   }, [selectedAnimationPreset]);
 
@@ -160,20 +170,7 @@ const Page = () => {
           objectRotation={object.rotation}
           objectScale={object.scale}
           groundPosition={ground.position}
-          model={
-            <ModelLoader
-              model={model}
-              position={
-                selectedAnimationPreset?.animationPresetData.modelData.position
-              }
-              rotation={
-                selectedAnimationPreset?.animationPresetData.modelData.rotation
-              }
-              scale={
-                selectedAnimationPreset?.animationPresetData.modelData.scale
-              }
-            />
-          }
+          model={model}
           groundModel={groundModel}
           lookAtTargetModel={lookAtTargetModel}
           staticBackgroundModels={staticBackgroundModels}
@@ -181,7 +178,7 @@ const Page = () => {
           showGround={true}
         />
       </div>
-      <Canvas className={""}>
+      <Canvas>
         <TestingScene
           objectPosition={object.position}
           objectScale={object.scale}
@@ -189,20 +186,7 @@ const Page = () => {
           objectRotation={object.rotation}
           lookAtTarget={lookAtTarget.position}
           showTarget={lookAtTarget.isShowTargetMarker}
-          model={
-            <ModelLoader
-              model={model}
-              position={
-                selectedAnimationPreset?.animationPresetData.modelData.position
-              }
-              rotation={
-                selectedAnimationPreset?.animationPresetData.modelData.rotation
-              }
-              scale={
-                selectedAnimationPreset?.animationPresetData.modelData.scale
-              }
-            />
-          }
+          model={model}
           groundModel={groundModel}
           lookAtTargetModel={lookAtTargetModel}
           staticBackgroundModels={staticBackgroundModels}

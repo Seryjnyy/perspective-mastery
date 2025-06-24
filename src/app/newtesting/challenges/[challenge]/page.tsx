@@ -24,14 +24,15 @@ import SceneVisualisationPreview from "../../features/scene-previewer/scene-visu
 import localPrimitiveModelsRepo from "../../features/animation/model-repo";
 import ModelLoader from "../../features/scene/components/model-loader";
 import { useModelsData } from "../../features/scene/models/use-models";
+import { AnimationPresetLocalModel } from "../../types2";
+import { CameraData } from "../../scene-store";
 import {
   CameraControlsInScene,
   CameraDataCollector,
   SceneStoreProvider,
   useTestingNewStore,
-} from "../../page";
-import { AnimationPresetLocalModel } from "../../types2";
-import { CameraData } from "../../scene-store";
+} from "../../page-content";
+import ModelGetterLoader from "../../features/scene/components/model-getter-loader";
 
 type Checked = DropdownMenuCheckboxItemProps["checked"];
 
@@ -59,34 +60,30 @@ function GuidedChallenge({
   animationPreset: AnimationPresetLocalModel;
 }) {
   // Camera state
-  const camera = useTestingNewStore()((state) => state.camera.data);
-  const setCamera = useTestingNewStore()((state) => state.camera.setCamera);
+  const camera = useTestingNewStore((state) => state.camera.data);
+  const setCamera = useTestingNewStore((state) => state.setCamera);
 
-  const setObjectRotation = useTestingNewStore()(
-    (state) => state.object.setRotation
+  const setObjectRotation = useTestingNewStore(
+    (state) => state.setObjectRotation
   );
-  const setObjectPosition = useTestingNewStore()(
-    (state) => state.object.setPosition
+  const setObjectPosition = useTestingNewStore(
+    (state) => state.setObjectPosition
   );
-  const setCameraPosition = useTestingNewStore()(
-    (state) => state.camera.setCameraDesiredPosition
+  const setCameraPosition = useTestingNewStore(
+    (state) => state.setCameraDesiredPosition
   );
-  const setCameraFov = useTestingNewStore()(
-    (state) => state.camera.setCameraDesiredFov
-  );
-  const setLookAtTargetPosition = useTestingNewStore()(
-    (state) => state.lookAtTarget.setLookAtTargetPosition
+  const setCameraFov = useTestingNewStore((state) => state.setCameraDesiredFov);
+  const setLookAtTargetPosition = useTestingNewStore(
+    (state) => state.setLookAtTargetPosition
   );
 
-  const lookAtTarget = useTestingNewStore()((state) => state.lookAtTarget.data);
-  const setLookAtTarget = useTestingNewStore()(
-    (state) => state.lookAtTarget.setLookAtTarget
-  );
+  const lookAtTarget = useTestingNewStore((state) => state.lookAtTarget.data);
+  const setLookAtTarget = useTestingNewStore((state) => state.setLookAtTarget);
 
-  const object = useTestingNewStore()((state) => state.object.data);
-  const setObject = useTestingNewStore()((state) => state.object.setObject);
+  const object = useTestingNewStore((state) => state.object.data);
+  const setObject = useTestingNewStore((state) => state.setObjectModel);
 
-  const ground = useTestingNewStore()((state) => state.ground.data);
+  const ground = useTestingNewStore((state) => state.ground.data);
 
   const navigate = useRouter();
 
@@ -121,22 +118,28 @@ function GuidedChallenge({
 
   const model = useMemo(() => {
     const modelData = animationPreset.animationPresetData.modelData;
-    // return modelRepo.getLocalModel(
-    //   modelData.modelId,
-    //   modelData.position,
-    //   modelData.scale,
-    //   modelData.rotation
-    // );
-    return models.getModel(modelData.modelId);
+    return (
+      <ModelGetterLoader
+        modelId={modelData.modelId}
+        position={modelData.position}
+        rotation={modelData.rotation}
+        scale={modelData.scale}
+        showBoundingBox={true}
+      />
+    );
   }, [animationPreset]);
 
   const groundModel = useMemo(() => {
     const groundData = animationPreset.animationPresetData.groundData;
-    return localPrimitiveModelsRepo.getLocalModel(
-      groundData.model?.modelId ?? "",
-      groundData.position,
-      groundData.scale,
-      groundData.rotation
+
+    return (
+      <ModelGetterLoader
+        modelId={groundData.modelId}
+        position={groundData.position}
+        rotation={groundData.rotation}
+        scale={groundData.scale}
+        showBoundingBox={true}
+      />
     );
   }, [animationPreset]);
 
@@ -250,22 +253,7 @@ function GuidedChallenge({
             objectRotation={object.rotation}
             objectScale={object.scale}
             groundPosition={ground.position}
-            model={
-              <ModelLoader
-                model={model}
-                onLoaded={() => {
-                  setIsModelLoaded(true);
-                }}
-                position={
-                  animationPreset.animationPresetData.modelData.position
-                }
-                rotation={
-                  animationPreset.animationPresetData.modelData.rotation
-                }
-                scale={animationPreset.animationPresetData.modelData.scale}
-                showBoundingBox={true}
-              />
-            }
+            model={model}
             groundModel={groundModel}
             lookAtTargetModel={lookAtTargetModel}
             staticBackgroundModels={staticBackgroundModels}
@@ -439,18 +427,7 @@ function GuidedChallenge({
           objectRotation={object.rotation}
           lookAtTarget={lookAtTarget.position}
           showTarget={lookAtTarget.isShowTargetMarker}
-          model={
-            <ModelLoader
-              model={model}
-              onLoaded={() => {
-                setIsModelLoaded(true);
-              }}
-              position={animationPreset.animationPresetData.modelData.position}
-              rotation={animationPreset.animationPresetData.modelData.rotation}
-              scale={animationPreset.animationPresetData.modelData.scale}
-              showBoundingBox={true}
-            />
-          }
+          model={model}
           groundModel={groundModel}
           lookAtTargetModel={lookAtTargetModel}
           staticBackgroundModels={staticBackgroundModels}

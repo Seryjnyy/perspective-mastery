@@ -1,4 +1,5 @@
-import { useTestingNewStore } from "../../page";
+"use client";
+import { useTestingNewStore } from "@/app/newtesting/page-content";
 import { Vec3 } from "../../scene-store";
 import { AnimationKeyframe } from "../animation/types/types";
 import KeyframeEditor from "./keyframe-editor";

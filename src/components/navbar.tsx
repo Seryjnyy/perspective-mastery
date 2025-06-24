@@ -160,6 +160,8 @@ export default function Navbar() {
       <div className="h-full w-full flex items-center justify-end px-2 gap-3">
         <Link href={"/"}>home</Link>
         <Link href={"/newtesting/recorder"}>recorder</Link>
+        <Link href={"/newtesting"}>newtesting</Link>
+        <Link href={"/newtesting/challenges"}>challenges</Link>
         <Button size={"icon"} variant={"outline"}>
           <HamburgerMenuIcon />
         </Button>

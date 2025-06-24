@@ -1,12 +1,13 @@
+"use client";
 type SyncFields = {
-  updateAt: number;
-  needsSync: boolean;
+    updateAt: number;
+    needsSync: boolean;
 };
 
 type FavouriteAnimationPreset = {
-  id: string;
+    id: string;
 } & SyncFields;
 
 export interface UserProgress {
-  favouriteAnimationPresets: FavouriteAnimationPreset[];
+    favouriteAnimationPresets: FavouriteAnimationPreset[];
 }
