@@ -156,7 +156,7 @@ export default function Navbar() {
   console.log(pathVars);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50  border max-h-[36px] h-[36px] ">
+    <nav className="fixed top-0 left-0 right-0 z-50  border max-h-[48px] h-[48px] ">
       <div className="h-full w-full flex items-center justify-end px-2 gap-3">
         <Link href={"/"}>home</Link>
         <Link href={"/newtesting/recorder"}>recorder</Link>

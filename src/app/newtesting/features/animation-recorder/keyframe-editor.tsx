@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Scroll, X } from "lucide-react";
-import { Vec3 } from "../../scene-store";
+
 import { AnimationKeyframe } from "../../features/animation/types/types";
 import { AnimationPreviewer } from "../../features/animation/components/animation-previewer";
 import { Label } from "@/components/ui/label";
@@ -16,6 +16,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { ScrollAreaThumb } from "@radix-ui/react-scroll-area";
 import { Slider } from "@/components/ui/slider";
 import { v4 as uuidv4 } from "uuid";
+import { Vec3 } from "../../scene-store/shared";
 
 const defaultVec3 = (): Vec3 => ({ x: 0, y: 0, z: 0 });
 
@@ -70,7 +71,7 @@ export function Vec3Input({
           <div key={axis} className="max-w-16">
             <NumberInput
               value={value[axis]}
-              onChange={(val) => {
+              onValueChange={(val) => {
                 onChange({ ...value, [axis]: val });
               }}
               label={axis}
@@ -288,7 +289,7 @@ const Keyframe = ({
                 min={0}
                 max={100}
                 value={kf.t * 100}
-                onChange={(val) => {
+                onValueChange={(val) => {
                   updateKeyframe(i, {
                     ...kf,
                     t: val / 100,
@@ -408,7 +409,7 @@ const Keyframe = ({
                 min={0}
                 max={100}
                 value={kf.config.cameraFov}
-                onChange={(val) => {
+                onValueChange={(val) => {
                   updateKeyframe(i, {
                     ...kf,
                     config: {

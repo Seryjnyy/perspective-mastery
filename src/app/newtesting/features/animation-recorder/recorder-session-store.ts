@@ -1,26 +1,24 @@
 "use client";
-import { createJSONStorage, persist } from "zustand/middleware";
-import { createSelectors } from "../../shared/utils/create-selectors";
-import { create } from "zustand";
-import { immer } from "zustand/middleware/immer";
 import { AnimationKeyframe } from "@/app/newtesting/features/animation/types/types";
+import {
+  getStorageImplementation,
+  StorageMethod,
+} from "@/app/newtesting/scene-store/scene-store";
 import {
   AnimationPresetLocalCreationMetadata,
   Difficulty,
 } from "@/app/newtesting/types2";
-import { v4 as uuidv4 } from "uuid";
+import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
+import { immer } from "zustand/middleware/immer";
 import { StoreApi } from "zustand/vanilla";
-import {
-  getStorageImplementation,
-  SceneState,
-  StorageMethod,
-} from "@/app/newtesting/scene-store";
-import { Tag } from "postcss-selector-parser";
 
 export type RecorderSessionStoreState = {
   keyframes: AnimationKeyframe[];
   metadata: AnimationPresetLocalCreationMetadata;
   randomValueToForceStoreToPersist: number | null;
+  lastUpdated?: string;
+  createdAt: string;
 };
 
 type RecorderSessionStoreActions = {
@@ -49,7 +47,9 @@ const defaultState: RecorderSessionStoreState = {
     difficulty: "medium",
     recommendedSteps: 6,
   },
+  lastUpdated: new Date().toISOString(),
   randomValueToForceStoreToPersist: null,
+  createdAt: new Date().toISOString(),
 };
 export const RECORDER_SESSION_STORE_NAME = "recorder-session-";
 
@@ -58,7 +58,6 @@ const storageMethod: StorageMethod = "localStorage";
 export const createRecorderSessionStore = (
   id: string
 ): StoreApi<RecorderSessionStore> => {
-  console.log("ApplesPears", id);
   return create<RecorderSessionStore>()(
     persist(
       immer((set) => ({
@@ -66,22 +65,27 @@ export const createRecorderSessionStore = (
         setName: (patch) =>
           set((state) => {
             state.metadata.name = patch;
+            state.lastUpdated = new Date().toISOString();
           }),
         setDesc: (patch) =>
           set((state) => {
             state.metadata.desc = patch;
+            state.lastUpdated = new Date().toISOString();
           }),
         setDifficulty: (patch) =>
           set((state) => {
             state.metadata.difficulty = patch;
+            state.lastUpdated = new Date().toISOString();
           }),
         setRecommendedSteps: (patch) =>
           set((state) => {
             state.metadata.recommendedSteps = patch;
+            state.lastUpdated = new Date().toISOString();
           }),
         setTags: (patch) =>
           set((state) => {
             state.metadata.tags = patch;
+            state.lastUpdated = new Date().toISOString();
           }),
         addKeyframe: (patch) =>
           set((state) => {
@@ -90,24 +94,30 @@ export const createRecorderSessionStore = (
             );
 
             state.keyframes = [...filtered, patch];
+            state.lastUpdated = new Date().toISOString();
           }),
         removeKeyframe: (keyframeId) =>
           set((state) => {
             state.keyframes = state.keyframes.filter(
               (kf) => kf.id !== keyframeId
             );
+            state.lastUpdated = new Date().toISOString();
           }),
         setKeyframes: (keyframes) =>
           set((state) => {
             state.keyframes = keyframes;
+            state.lastUpdated = new Date().toISOString();
           }),
+
         clearKeyframes: () =>
           set((state) => {
             state.keyframes = [];
+            state.lastUpdated = new Date().toISOString();
           }),
         forcePersist: () =>
           set((state) => {
             state.randomValueToForceStoreToPersist = Math.random();
+            state.lastUpdated = new Date().toISOString();
           }),
       })),
       {

@@ -1,5 +1,9 @@
 "use client";
 import { ControlsPanel } from "@/app/newtesting/app/components/control-panel/control-panel";
+import {
+  ObjectDataDisplayObject,
+  ObjectDataDisplaySection,
+} from "@/app/newtesting/shared/components/object-data-display";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
@@ -26,23 +30,16 @@ import {
 } from "react";
 import * as THREE from "three";
 import { OrbitControls as OrbitControlsImpl } from "three-stdlib";
-import {
-  ObjectDataDisplayObject,
-  ObjectDataDisplaySection,
-} from "@/app/newtesting/shared/components/object-data-display";
+import { StoreApi, useStore } from "zustand";
+import { TestingScene } from "./challenges/[challenge]/page";
 import SceneVisualisation, {
   SceneVisualisationProps,
 } from "./features/scene-previewer/scene-visualisation";
-import { TestingScene } from "./challenges/[challenge]/page";
-import {
-  CameraData,
-  createSceneStore,
-  LookAtMode,
-  LookAtTargetData,
-  ObjectData,
-  SceneState,
-} from "./scene-store";
-import { StoreApi, useStore } from "zustand";
+import { CameraData } from "./scene-store/camera-slice";
+import { LookAtMode, LookAtTargetData } from "./scene-store/lookat-slice";
+import { SceneState } from "./scene-store/shared";
+import { createSceneStore } from "./scene-store/scene-store";
+import { GroundData, ObjectData } from "./scene-store/object-slice";
 
 // Scene with a controllable object group
 const Scene = ({
@@ -172,7 +169,7 @@ const CameraControlsInScene = ({
 }: {
   cameraPosition: { x: number; y: number; z: number };
   cameraFov: number;
-  lookAtTarget: { x: number; y: number; z: number };
+  lookAtTarget?: { x: number; y: number; z: number };
   lookAtMode: LookAtMode;
   isShowGizmos: boolean;
 }) => {
@@ -200,11 +197,13 @@ const CameraControlsInScene = ({
       // Apply look-at if enabled
       if (lookAtMode === "manual") {
         console.log("being called", lookAtTarget);
-        cameraRef.current.lookAt(
-          lookAtTarget.x,
-          lookAtTarget.y,
-          lookAtTarget.z
-        );
+        if (lookAtTarget) {
+          cameraRef.current.lookAt(
+            lookAtTarget.x,
+            lookAtTarget.y,
+            lookAtTarget.z
+          );
+        }
       }
 
       // Update FOV and projection matrix
@@ -222,9 +221,9 @@ const CameraControlsInScene = ({
 
       if (lookAtMode === "orbit") {
         if (
-          lookAtTarget.x !== target.x ||
-          lookAtTarget.y !== target.y ||
-          lookAtTarget.z !== target.z
+          lookAtTarget?.x !== target.x ||
+          lookAtTarget?.y !== target.y ||
+          lookAtTarget?.z !== target.z
         ) {
           setLookAtTargetPosition({
             x: target.x,
@@ -257,7 +256,13 @@ const CameraControlsInScene = ({
         <OrbitControls
           ref={controlsRef}
           target={
-            new THREE.Vector3(lookAtTarget.x, lookAtTarget.y, lookAtTarget.z)
+            lookAtTarget
+              ? new THREE.Vector3(
+                  lookAtTarget.x,
+                  lookAtTarget.y,
+                  lookAtTarget.z
+                )
+              : undefined
           }
         />
       )}
@@ -350,76 +355,6 @@ function CameraControlsScene() {
     });
   };
 
-  // Look at object position
-  const lookAtObject = () => {
-    if (lookAtTarget.mode === "manual") {
-      setLookAtTargetPosition({
-        x: object.position.x,
-        y: object.position.y,
-        z: object.position.z,
-      });
-    }
-  };
-
-  // const rotateObject = (axis: "x" | "y" | "z", degrees: number) => {
-  //   const radians = (degrees * Math.PI) / 180;
-  //   setObjectPosition({
-  //     x: object.position.x,
-  //     y: object.position.y,
-  //     z: object.position.z,
-  //   });
-  //   // setObjectRotation({
-  //   //   const newRotation = { ...prevRotation };
-  //   //   newRotation[axis] += radians;
-  //   //   return newRotation;
-  //   // });
-  // };
-
-  // const model = useMemo(() => {
-  //   const modelData = animationPreset.animationPresetData.modelData;
-  //   return modelRepo.getModel(
-  //     modelData.model.source,
-  //     modelData.position,
-  //     modelData.scale,
-  //     modelData.rotation
-  //   );
-  // }, [animationPreset]);
-
-  // const groundModel = useMemo(() => {
-  //   const groundData = animationPreset.animationPresetData.groundData;
-  //   return modelRepo.getGroundModel(
-  //     groundData.model,
-  //     groundData.position,
-  //     groundData.scale,
-  //     groundData.rotation
-  //   );
-  // }, [animationPreset]);
-
-  // const lookAtTargetModel = useMemo(() => {
-  //   const lookAtTargetData =
-  //     animationPreset.animationPresetData.lookAtTargetData;
-  //   return modelRepo.getLookAtTargetModel(
-  //     lookAtTargetData.model,
-  //     lookAtTargetData.position,
-  //     lookAtTargetData.scale,
-  //     lookAtTargetData.rotation
-  //   );
-  // }, [animationPreset]);
-
-  // const staticBackgroundModels = useMemo(() => {
-  //   const staticBackgroundData =
-  //     animationPreset.animationPresetData.staticBackground;
-  //   const models = staticBackgroundData.models.map((model) =>
-  //     modelRepo.getModel(
-  //       model.model.source,
-  //       model.position,
-  //       model.scale,
-  //       model.rotation
-  //     )
-  //   );
-  //   return <group>{models}</group>;
-  // }, [animationPreset]);
-
   return (
     <div className="w-full h-[90vh] relative">
       {/* Data Info Panel */}
@@ -427,6 +362,7 @@ function CameraControlsScene() {
         <DataDisplayWindow
           camera={camera}
           object={object}
+          ground={ground}
           lookAtTarget={lookAtTarget}
         />
       </div>
@@ -540,9 +476,11 @@ export const DataDisplayWindow = ({
   camera,
   object,
   lookAtTarget,
+  ground,
 }: {
   camera: CameraData;
   object: ObjectData;
+  ground: GroundData;
   lookAtTarget: LookAtTargetData;
 }) => {
   return (
@@ -550,20 +488,26 @@ export const DataDisplayWindow = ({
       <TabsList>
         <TabsTrigger value="camera">Camera</TabsTrigger>
         <TabsTrigger value="object">Object</TabsTrigger>
+        <TabsTrigger value="ground">Ground</TabsTrigger>
         <TabsTrigger value="look-at-target">Look at target</TabsTrigger>
       </TabsList>
       <TabsContent value="camera">
-        <ObjectDataDisplaySection title="Camera Data">
+        <ObjectDataDisplaySection title="Camera">
           <ObjectDataDisplayObject data={camera} />
         </ObjectDataDisplaySection>
       </TabsContent>
       <TabsContent value="object">
-        <ObjectDataDisplaySection title="Object Data">
+        <ObjectDataDisplaySection title="Object">
           <ObjectDataDisplayObject data={object} />
         </ObjectDataDisplaySection>
       </TabsContent>
+      <TabsContent value="ground">
+        <ObjectDataDisplaySection title="Ground">
+          <ObjectDataDisplayObject data={ground} />
+        </ObjectDataDisplaySection>
+      </TabsContent>
       <TabsContent value="look-at-target">
-        <ObjectDataDisplaySection title="Look At Target Data">
+        <ObjectDataDisplaySection title="Look At Target">
           <ObjectDataDisplayObject data={lookAtTarget} />
         </ObjectDataDisplaySection>
       </TabsContent>

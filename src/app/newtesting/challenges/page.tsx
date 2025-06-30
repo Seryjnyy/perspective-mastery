@@ -1,6 +1,6 @@
 "use client";
 import ContentLibrarySection from "@/app/newtesting/content-library-section";
-import { CameraData } from "@/app/newtesting/scene-store";
+
 import { Canvas } from "@react-three/fiber";
 import { useMemo, useState } from "react";
 import { AnimationPreviewer } from "../features/animation/components/animation-previewer";
@@ -18,6 +18,7 @@ import {
   useTestingNewStore,
 } from "../page-content";
 import ModelGetterLoader from "../features/scene/components/model-getter-loader";
+import { CameraData } from "../scene-store/camera-slice";
 
 export default function Guided() {
   return (
@@ -30,9 +31,9 @@ export default function Guided() {
 const Page = () => {
   const camera = useTestingNewStore((state) => state.camera.data);
   const setCamera = useTestingNewStore((state) => state.setCamera);
-  const object = useTestingNewStore((state) => state.object.data);
-  const ground = useTestingNewStore((state) => state.ground.data);
-  const lookAtTarget = useTestingNewStore((state) => state.lookAtTarget.data);
+  const object = useTestingNewStore((state) => state.object);
+  const ground = useTestingNewStore((state) => state.ground);
+  const lookAtTarget = useTestingNewStore((state) => state.lookAtTarget);
   const setObjectRotation = useTestingNewStore(
     (state) => state.setObjectRotation
   );
@@ -72,10 +73,10 @@ const Page = () => {
 
     return (
       <ModelGetterLoader
-        modelId={modelData.modelId}
-        position={modelData.position}
-        rotation={modelData.rotation}
-        scale={modelData.scale}
+        modelId={modelData.model.modelId}
+        position={modelData.inScene.position}
+        rotation={modelData.inScene.rotation}
+        scale={modelData.inScene.scale}
       />
     );
   }, [selectedAnimationPreset]);
@@ -85,10 +86,10 @@ const Page = () => {
     if (!groundData) return null;
     return (
       <ModelGetterLoader
-        modelId={groundData.modelId}
-        position={groundData.position}
-        rotation={groundData.rotation}
-        scale={groundData.scale}
+        modelId={groundData.model.modelId}
+        position={groundData.inScene.position}
+        rotation={groundData.inScene.rotation}
+        scale={groundData.inScene.scale}
       />
     );
   }, [selectedAnimationPreset]);
@@ -100,9 +101,9 @@ const Page = () => {
     if (!lookAtTargetData) return null;
     return localPrimitiveModelsRepo.getLocalModel(
       lookAtTargetData.model.modelId,
-      lookAtTargetData.position,
-      lookAtTargetData.scale,
-      lookAtTargetData.rotation
+      lookAtTargetData.inScene.position,
+      lookAtTargetData.inScene.scale,
+      lookAtTargetData.inScene.rotation
     );
   }, [selectedAnimationPreset]);
 
@@ -112,10 +113,10 @@ const Page = () => {
     if (!staticBackgroundData) return null;
     const models = staticBackgroundData.models.map((model) =>
       localPrimitiveModelsRepo.getLocalModel(
-        model.modelId,
-        model.position,
-        model.scale,
-        model.rotation
+        model.model.modelId,
+        model.inScene.position,
+        model.inScene.scale,
+        model.inScene.rotation
       )
     );
     return <group>{models}</group>;
@@ -135,73 +136,85 @@ const Page = () => {
     );
   }, [selectedAnimationPreset]);
 
+  const objectPosition =
+    object.data.inScene.position || object.defaultsInScene.position;
+  const objectScale = object.data.inScene.scale || object.defaultsInScene.scale;
+  const groundPosition =
+    ground.data.inScene.position || object.defaultsInScene.scale;
+  const objectRotation =
+    object.data.inScene.rotation || object.defaultsInScene.rotation;
+  const lookAtTargetPosition =
+    lookAtTarget.data.inScene.position || lookAtTarget.defaultsInScene.position;
+
   return (
-    <ContentLibrarySection
-      selectedAnimationPreset={selectedAnimationPreset}
-      setSelectedAnimationPreset={setSelectedAnimationPreset}
-    >
-      <div className="absolute bottom-2 left-2 z-50 backdrop-blur-xl border-2 w-[12rem] h-fit p-4">
-        <AnimationPreviewer
-          autoPlay={true}
-          duration={3}
-          keyframes={
-            selectedAnimationPreset?.animationPresetData.animationData
-              .keyframes || []
-          }
-          apply={(state) => {
-            setObjectRotation(state.objectRotation);
-            setObjectPosition(state.objectPosition);
-            setCameraDesiredPosition(state.cameraPosition);
-            setCameraDesiredFov(state.cameraFov);
-            setLookAtTargetPosition(state.lookAtTargetPosition);
-          }}
-        />
-      </div>
-      <div className="absolute top-2 right-2 z-50 backdrop-blur-xl border-2">
-        <SceneVisualisation
-          lookAtTargetPosition={lookAtTarget.position}
-          cameraPosition={camera.position}
-          cameraRotation={camera.rotation}
-          fov={camera.desiredFov}
-          aspect={camera.aspect}
-          near={camera.near}
-          far={camera.far}
-          objectPosition={object.position}
-          objectRotation={object.rotation}
-          objectScale={object.scale}
-          groundPosition={ground.position}
-          model={model}
-          groundModel={groundModel}
-          lookAtTargetModel={lookAtTargetModel}
-          staticBackgroundModels={staticBackgroundModels}
-          showFrustum={true}
-          showGround={true}
-        />
-      </div>
-      <Canvas>
-        <TestingScene
-          objectPosition={object.position}
-          objectScale={object.scale}
-          groundPosition={ground.position}
-          objectRotation={object.rotation}
-          lookAtTarget={lookAtTarget.position}
-          showTarget={lookAtTarget.isShowTargetMarker}
-          model={model}
-          groundModel={groundModel}
-          lookAtTargetModel={lookAtTargetModel}
-          staticBackgroundModels={staticBackgroundModels}
-          lights={lights}
-          showGround={true}
-        />
-        <CameraControlsInScene
-          cameraPosition={camera.desiredPosition}
-          cameraFov={camera.desiredFov}
-          lookAtTarget={lookAtTarget.position}
-          lookAtMode={lookAtTarget.mode}
-          isShowGizmos={false}
-        />
-        <CameraDataCollector onCameraDataChange={handleCameraDataChange} />
-      </Canvas>
-    </ContentLibrarySection>
+    <div className="h-[calc(100vh-48px)] mt-[48px] ">
+      <ContentLibrarySection
+        selectedAnimationPreset={selectedAnimationPreset}
+        setSelectedAnimationPreset={setSelectedAnimationPreset}
+      >
+        <div className="absolute bottom-2 left-2 z-50 backdrop-blur-xl border-2 w-[12rem] h-fit p-4">
+          <AnimationPreviewer
+            autoPlay={true}
+            duration={3}
+            keyframes={
+              selectedAnimationPreset?.animationPresetData.animationData
+                .keyframes || []
+            }
+            apply={(state) => {
+              setObjectRotation(state.objectRotation);
+              setObjectPosition(state.objectPosition);
+              setCameraDesiredPosition(state.cameraPosition);
+              setCameraDesiredFov(state.cameraFov);
+              setLookAtTargetPosition(state.lookAtTargetPosition);
+            }}
+          />
+        </div>
+        <div className="absolute top-2 right-2 z-50 backdrop-blur-xl border-2">
+          <SceneVisualisation
+            lookAtTargetPosition={lookAtTargetPosition}
+            cameraPosition={camera.position}
+            cameraRotation={camera.rotation}
+            fov={camera.desiredFov}
+            aspect={camera.aspect}
+            near={camera.near}
+            far={camera.far}
+            objectPosition={objectPosition}
+            objectRotation={objectRotation}
+            objectScale={objectScale}
+            groundPosition={groundPosition}
+            model={model}
+            groundModel={groundModel}
+            lookAtTargetModel={lookAtTargetModel}
+            staticBackgroundModels={staticBackgroundModels}
+            showFrustum={true}
+            showGround={true}
+          />
+        </div>
+        <Canvas>
+          <TestingScene
+            objectPosition={objectPosition}
+            objectScale={objectScale}
+            groundPosition={groundPosition}
+            objectRotation={objectRotation}
+            lookAtTarget={lookAtTargetPosition}
+            showTarget={lookAtTarget.data.isShowTargetMarker}
+            model={model}
+            groundModel={groundModel}
+            lookAtTargetModel={lookAtTargetModel}
+            staticBackgroundModels={staticBackgroundModels}
+            lights={lights}
+            showGround={true}
+          />
+          <CameraControlsInScene
+            cameraPosition={camera.desiredPosition}
+            cameraFov={camera.desiredFov}
+            lookAtTarget={lookAtTarget.data.inScene.position}
+            lookAtMode={lookAtTarget.data.mode}
+            isShowGizmos={false}
+          />
+          <CameraDataCollector onCameraDataChange={handleCameraDataChange} />
+        </Canvas>
+      </ContentLibrarySection>
+    </div>
   );
 };

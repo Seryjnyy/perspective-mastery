@@ -1,6 +1,6 @@
 "use client";
 import { AnimationPresetLocalModel, testAnimationPresets } from "../../types2";
-import { useLocalAnimationPresetsStore } from "../animation-recorder/local-animation-preset-store";
+import { getLocalAnimationPresets } from "../animation-animation-recorder/local-preset-to-animation";
 
 interface AnimationPresetRepo {
   getAnimationPreset(id: string): AnimationPresetLocalModel | undefined;
@@ -14,8 +14,7 @@ interface AnimationPresetRepo {
 
 export const animationPresetRepo: AnimationPresetRepo = {
   getAnimationPreset: (id: string) => {
-    const k = useLocalAnimationPresetsStore();
-    return k.localAnimationPresets.find((preset) => preset.id === id);
+    return getLocalAnimationPresets().find((preset) => preset.id === id);
   },
   getAnimationPresets: () => {
     return testAnimationPresets;

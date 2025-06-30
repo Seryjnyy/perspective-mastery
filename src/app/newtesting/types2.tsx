@@ -1,16 +1,18 @@
 "use client";
 import { Group } from "three";
 import { AnimationKeyframe } from "./features/animation/types/types";
-import { Vec3 } from "./scene-store";
+
 import { boxRotationsYaxis } from "./features/animation/presets/box-rotation/y-axis";
 import {
   localCube,
   localCylinder,
   localGrid,
   localHead,
+  localSmallSphere,
   Model,
   ModelSource,
 } from "./features/scene/models/model";
+import { Vec3 } from "./scene-store/shared";
 
 type AnimationData = {
   keyframes: AnimationKeyframe[];
@@ -35,29 +37,35 @@ type AnimationData = {
 
 /**
  * Defines a model. It provides a model id and initial model position/rotation/scale that can be applied to the loaded in model.
+ * Contains transform, which is used to initially transform the model when it is loaded in.
  */
 type ModelData = {
   modelId: string;
+  transform?: {
+    position?: Vec3;
+    rotation?: Vec3;
+    scale?: Vec3;
+  };
+};
+
+export type InSceneState = {
   position?: Vec3;
   rotation?: Vec3;
   scale?: Vec3;
+};
+
+export type SceneModel = {
+  model: ModelData;
+  inScene: InSceneState;
 };
 
 // TODO : the models already container their own position, rotation, and scale
 //  so we don't need to pass them in here
 type StaticBackground = {
-  models: ModelData[];
-  position?: Vec3;
-  rotation?: Vec3;
-  scale?: Vec3;
+  models: SceneModel[];
+  inScene: InSceneState;
 };
 
-type LookAtTargetData = {
-  model: ModelData;
-  position?: Vec3;
-  rotation?: Vec3;
-  scale?: Vec3;
-};
 type AnimationPreset = {
   id: string;
   animationPresetData: AnimationPresetData;
@@ -79,10 +87,10 @@ type LightData = {
 
 type AnimationPresetData = {
   animationData: AnimationData;
-  modelData: ModelData;
-  groundData: ModelData;
+  modelData: SceneModel;
+  groundData: SceneModel;
   staticBackground: StaticBackground;
-  lookAtTargetData: LookAtTargetData;
+  lookAtTargetData: SceneModel;
   lightData: LightData;
 };
 
@@ -130,527 +138,532 @@ export const defaultLights: Light[] = [
   },
 ];
 
-const testAnimationPresets: AnimationPresetLocalModel[] = [
-  {
-    id: "1",
-    animationPresetData: {
-      animationData: {
-        keyframes: [
-          {
-            id: "1",
-            t: 0,
-            config: {
-              objectRotation: { x: 0, y: 0, z: 0 },
-              objectPosition: { x: 0, y: 0, z: 0 },
-              cameraPosition: { x: -5, y: 1, z: 2 },
-              cameraFov: 50,
-              lookAtTargetPosition: { x: 0, y: 0, z: 0 },
-            },
-          },
-          {
-            id: "2",
-            t: 1,
-            config: {
-              objectRotation: { x: 0, y: 0, z: 0 },
-              objectPosition: { x: 0, y: 0, z: 0 },
-              cameraPosition: { x: 5, y: 1, z: 2 },
-              cameraFov: 50,
-              lookAtTargetPosition: { x: 0, y: 0, z: 0 },
-            },
-          },
-        ],
-      },
-      modelData: {
-        modelId: localCube.id,
-      },
-      groundData: {
-        modelId: localGrid.id,
-      },
-      staticBackground: {
-        models: [],
-      },
-      lookAtTargetData: {
-        model: {
-          modelId: "local-look-at-target-sphere",
-        },
-      },
-      lightData: {
-        lights: [],
-      },
-    },
+const testAnimationPresets: AnimationPresetLocalModel[] = [];
+// const testAnimationPresets: AnimationPresetLocalModel[] = [
+//   {
+//     id: "1",
+//     animationPresetData: {
+//       animationData: {
+//         keyframes: [
+//           {
+//             id: "1",
+//             t: 0,
+//             config: {
+//               objectRotation: { x: 0, y: 0, z: 0 },
+//               objectPosition: { x: 0, y: 0, z: 0 },
+//               cameraPosition: { x: -5, y: 1, z: 2 },
+//               cameraFov: 50,
+//               lookAtTargetPosition: { x: 0, y: 0, z: 0 },
+//             },
+//           },
+//           {
+//             id: "2",
+//             t: 1,
+//             config: {
+//               objectRotation: { x: 0, y: 0, z: 0 },
+//               objectPosition: { x: 0, y: 0, z: 0 },
+//               cameraPosition: { x: 5, y: 1, z: 2 },
+//               cameraFov: 50,
+//               lookAtTargetPosition: { x: 0, y: 0, z: 0 },
+//             },
+//           },
+//         ],
+//       },
+//       modelData: {
+//         modelId: localCube.id,
+//       },
+//       groundData: {
+//         modelId: localGrid.id,
+//       },
+//       staticBackground: {
+//         models: [],
+//         inScene: {},
+//       },
+//       lookAtTargetData: {
+//         modelId: localSmallSphere.id,
+//       },
+//       lightData: {
+//         lights: [],
+//       },
+//     },
 
-    metadata: {
-      name: "Test Animation Preset",
-      desc: "This is a test animation preset",
-      createdAt: new Date().toISOString(),
-      lastUsedAt: new Date().toISOString(),
-      isFavorite: false,
-      difficulty: "easy",
-      recommendedSteps: 10,
-      tags: ["test", "animation", "preset"],
-      source: "local",
-    },
-  },
-  // ...boxRotationsYaxis,
-  {
-    id: "2",
-    animationPresetData: {
-      animationData: {
-        keyframes: [
-          {
-            id: "1",
-            t: 0,
-            config: {
-              objectRotation: { x: 0, y: 0, z: 0 },
-              objectPosition: { x: 0, y: 0, z: 0 },
-              cameraPosition: { x: 0, y: 2, z: 6 },
-              cameraFov: 60,
-              lookAtTargetPosition: { x: 0, y: 1, z: 0 },
-            },
-          },
-          {
-            id: "2",
-            t: 0.99,
-            config: {
-              objectRotation: { x: 0, y: 0, z: 0 },
-              objectPosition: { x: 0, y: 3, z: 0 },
-              cameraPosition: { x: 0, y: 5, z: 10 },
-              cameraFov: 45,
-              lookAtTargetPosition: { x: 0, y: 3, z: 0 },
-            },
-          },
-          {
-            id: "3",
-            t: 1,
-            config: {
-              objectRotation: { x: 0, y: 0, z: 0 },
-              objectPosition: { x: 0, y: 3, z: 0 },
-              cameraPosition: { x: 0, y: 5, z: 10 },
-              cameraFov: 45,
-              lookAtTargetPosition: { x: 0, y: 3, z: 0 },
-            },
-          },
-        ],
-      },
-      modelData: {
-        modelId: localCylinder.id,
-      },
-      groundData: {
-        modelId: localGrid.id,
-      },
-      staticBackground: {
-        models: [
-          {
-            modelId: localCube.id,
-            position: { x: 3, y: 0, z: 0 },
-            rotation: { x: 0, y: 0, z: 0 },
-            scale: { x: 0.5, y: 0.5, z: 0.5 },
-          },
-        ],
-      },
-      lookAtTargetData: {
-        model: {
-          modelId: "local-look-at-target-sphere",
-        },
-      },
-      lightData: {
-        lights: [
-          {
-            type: "ambient",
-            position: { x: 2, y: 2, z: 2 },
-            rotation: { x: 0, y: 0, z: 0 },
-            scale: { x: 1, y: 1, z: 1 },
-            intensity: 1,
-          },
-        ],
-      },
-    },
-    metadata: {
-      name: "Test Animation Preset 2",
-      desc: "This is a test animation preset 2",
-      createdAt: new Date().toISOString(),
-      lastUsedAt: new Date().toISOString(),
-      isFavorite: false,
-      difficulty: "hard",
-      recommendedSteps: 10,
-      tags: ["test", "animation", "preset"],
-      source: "local",
-    },
-  },
-  {
-    id: "3",
-    animationPresetData: {
-      animationData: {
-        keyframes: [
-          {
-            id: "1",
-            t: 0,
-            config: {
-              objectRotation: { x: 0, y: 0, z: 0 },
-              objectPosition: { x: 0, y: 0, z: 0 },
-              cameraPosition: { x: 0, y: 2, z: 6 },
-              cameraFov: 60,
-              lookAtTargetPosition: { x: 0, y: 1, z: 0 },
-            },
-          },
-          {
-            id: "2",
-            t: 0.99,
-            config: {
-              objectRotation: { x: 0, y: 0, z: 0 },
-              objectPosition: { x: 0, y: 3, z: 0 },
-              cameraPosition: { x: 0, y: 5, z: 10 },
-              cameraFov: 45,
-              lookAtTargetPosition: { x: 0, y: 3, z: 0 },
-            },
-          },
-          {
-            id: "3",
-            t: 1,
-            config: {
-              objectRotation: { x: 0, y: 0, z: 0 },
-              objectPosition: { x: 0, y: 3, z: 0 },
-              cameraPosition: { x: 0, y: 5, z: 10 },
-              cameraFov: 45,
-              lookAtTargetPosition: { x: 0, y: 3, z: 0 },
-            },
-          },
-        ],
-      },
-      modelData: {
-        modelId: localHead.id,
-      },
-      groundData: {
-        modelId: localGrid.id,
-      },
-      staticBackground: {
-        models: [
-          {
-            modelId: localCube.id,
-            position: { x: 3, y: 0, z: 0 },
-            rotation: { x: 0, y: 0, z: 0 },
-            scale: { x: 0.5, y: 0.5, z: 0.5 },
-          },
-        ],
-      },
-      lookAtTargetData: {
-        model: {
-          modelId: "local-look-at-target-sphere",
-        },
-      },
-      lightData: {
-        lights: [
-          {
-            type: "ambient",
-            position: { x: 2, y: 2, z: 2 },
-            rotation: { x: 0, y: 0, z: 0 },
-            scale: { x: 1, y: 1, z: 1 },
-            intensity: 1,
-          },
-        ],
-      },
-    },
-    metadata: {
-      name: "Test Animation Preset 3",
-      desc: "This is a test animation preset 3",
-      createdAt: new Date().toISOString(),
-      lastUsedAt: new Date().toISOString(),
-      isFavorite: false,
-      difficulty: "hard",
-      recommendedSteps: 10,
-      tags: ["test", "animation", "preset"],
-      source: "local",
-    },
-  },
-  {
-    id: "4",
-    animationPresetData: {
-      animationData: {
-        keyframes: [
-          {
-            id: "1",
-            t: 0, // Start
-            config: {
-              objectRotation: { x: 0, y: 0, z: 0 },
-              objectPosition: { x: 0, y: 0, z: 0 },
-              cameraPosition: { x: -4, y: 2, z: 4 },
-              cameraFov: 50,
-              lookAtTargetPosition: { x: 0, y: 0, z: 0 },
-            },
-          },
-          {
-            id: "2",
-            t: 0.33,
-            config: {
-              objectRotation: { x: 0, y: 0, z: 0 },
-              objectPosition: { x: 0, y: 0, z: 0 },
-              cameraPosition: { x: 4, y: 2, z: 4 },
-              cameraFov: 50,
-              lookAtTargetPosition: { x: 0, y: 0, z: 0 },
-            },
-          },
-          {
-            id: "3",
-            t: 0.66,
-            config: {
-              objectRotation: { x: 0, y: 0, z: 0 },
-              objectPosition: { x: 0, y: 0, z: 0 },
-              cameraPosition: { x: 4, y: 2, z: -4 },
-              cameraFov: 50,
-              lookAtTargetPosition: { x: 0, y: 0, z: 0 },
-            },
-          },
-          {
-            id: "4",
-            t: 1, // End (loops back to start if animated continuously)
-            config: {
-              objectRotation: { x: 0, y: 0, z: 0 },
-              objectPosition: { x: 0, y: 0, z: 0 },
-              cameraPosition: { x: -4, y: 2, z: 4 },
-              cameraFov: 50,
-              lookAtTargetPosition: { x: 0, y: 0, z: 0 },
-            },
-          },
-        ],
-      },
-      modelData: {
-        modelId: localHead.id,
-      },
-      groundData: {
-        modelId: localGrid.id,
-      },
-      staticBackground: {
-        models: [
-          {
-            modelId: localCube.id,
-            position: { x: 3, y: 0, z: 0 },
-            rotation: { x: 0, y: 0, z: 0 },
-            scale: { x: 0.5, y: 0.5, z: 0.5 },
-          },
-        ],
-      },
-      lookAtTargetData: {
-        model: {
-          modelId: "local-look-at-target-sphere",
-        },
-      },
-      lightData: {
-        lights: [
-          {
-            type: "ambient",
-            position: { x: 2, y: 2, z: 2 },
-            rotation: { x: 0, y: 0, z: 0 },
-            scale: { x: 1, y: 1, z: 1 },
-            intensity: 1,
-          },
-        ],
-      },
-    },
-    metadata: {
-      name: "Four",
-      desc: "Four description",
-      createdAt: new Date().toISOString(),
-      lastUsedAt: new Date().toISOString(),
-      isFavorite: false,
-      difficulty: "hard",
-      recommendedSteps: 10,
-      tags: ["test", "animation", "preset"],
-      source: "local",
-    },
-  },
-  {
-    id: "5",
-    animationPresetData: {
-      animationData: {
-        keyframes: [
-          {
-            id: "1",
-            t: 0, // Start
-            config: {
-              objectRotation: { x: 0, y: 0, z: 0 },
-              objectPosition: { x: 0, y: 0, z: 0 },
-              cameraPosition: { x: -5, y: 1, z: 5 },
-              cameraFov: 50,
-              lookAtTargetPosition: { x: 0, y: 0, z: 0 },
-            },
-          },
-          {
-            id: "2",
-            t: 0.25, // Zoom In
-            config: {
-              objectRotation: { x: 0, y: 0, z: 0 },
-              objectPosition: { x: 0, y: 0, z: 0 },
-              cameraPosition: { x: -1.5, y: 0.5, z: 1.5 },
-              cameraFov: 40, // Narrower FOV for close-up
-              lookAtTargetPosition: { x: 0, y: 0, z: 0 },
-            },
-          },
-          {
-            id: "3",
-            t: 0.5, // Pan Left
-            config: {
-              objectRotation: { x: 0, y: 0, z: 0 },
-              objectPosition: { x: 0, y: 0, z: 0 },
-              cameraPosition: { x: 1.5, y: 0.5, z: 1.5 },
-              cameraFov: 40,
-              lookAtTargetPosition: { x: 0, y: 0, z: 0 },
-            },
-          },
-          {
-            id: "4",
-            t: 0.75, // Pan Right
-            config: {
-              objectRotation: { x: 0, y: 0, z: 0 },
-              objectPosition: { x: 0, y: 0, z: 0 },
-              cameraPosition: { x: -1.5, y: 0.5, z: 1.5 },
-              cameraFov: 40,
-              lookAtTargetPosition: { x: 0, y: 0, z: 0 },
-            },
-          },
-          {
-            id: "5",
-            t: 1, // Zoom Out
-            config: {
-              objectRotation: { x: 0, y: 0, z: 0 },
-              objectPosition: { x: 0, y: 0, z: 0 },
-              cameraPosition: { x: -5, y: 1, z: 5 },
-              cameraFov: 50,
-              lookAtTargetPosition: { x: 0, y: 0, z: 0 },
-            },
-          },
-        ],
-      },
-      modelData: {
-        modelId: localHead.id,
-      },
-      groundData: {
-        modelId: localGrid.id,
-      },
-      staticBackground: {
-        models: [
-          {
-            modelId: localCube.id,
-            position: { x: 3, y: 0, z: 0 },
-            rotation: { x: 0, y: 0, z: 0 },
-            scale: { x: 0.5, y: 0.5, z: 0.5 },
-          },
-        ],
-      },
-      lookAtTargetData: {
-        model: {
-          modelId: "local-look-at-target-sphere",
-        },
-      },
-      lightData: {
-        lights: [
-          {
-            type: "ambient",
-            position: { x: 2, y: 2, z: 2 },
-            rotation: { x: 0, y: 0, z: 0 },
-            scale: { x: 1, y: 1, z: 1 },
-            intensity: 1,
-          },
-        ],
-      },
-    },
-    metadata: {
-      name: "Five",
-      desc: "Five description",
-      createdAt: new Date().toISOString(),
-      lastUsedAt: new Date().toISOString(),
-      isFavorite: false,
-      difficulty: "hard",
-      recommendedSteps: 10,
-      tags: ["test", "animation", "preset"],
-      source: "local",
-    },
-  },
-  {
-    id: "6",
-    animationPresetData: {
-      animationData: {
-        keyframes: [
-          {
-            id: "1",
-            t: 0, // Start
-            config: {
-              objectRotation: { x: 0, y: 0, z: 0 },
-              objectPosition: { x: 0, y: 0, z: 0 },
-              cameraPosition: { x: -3, y: 1, z: 3 },
-              cameraFov: 50,
-              lookAtTargetPosition: { x: 0, y: 0, z: 0 },
-            },
-          },
-          {
-            id: "2",
-            t: 0.5, // Halfway through rotation
-            config: {
-              objectRotation: { x: 0, y: Math.PI, z: 0 }, // Rotate 180 degrees around Y
-              objectPosition: { x: 0, y: 0, z: 0 },
-              cameraPosition: { x: -3, y: 1, z: 3 },
-              cameraFov: 50,
-              lookAtTargetPosition: { x: 0, y: 0, z: 0 },
-            },
-          },
-          {
-            id: "3",
-            t: 1, // Full rotation
-            config: {
-              objectRotation: { x: 0, y: Math.PI * 2, z: 0 }, // Rotate 360 degrees around Y
-              objectPosition: { x: 0, y: 0, z: 0 },
-              cameraPosition: { x: -3, y: 1, z: 3 },
-              cameraFov: 50,
-              lookAtTargetPosition: { x: 0, y: 0, z: 0 },
-            },
-          },
-        ],
-      },
-      modelData: {
-        modelId: localHead.id,
-      },
-      groundData: {
-        modelId: localGrid.id,
-      },
-      staticBackground: {
-        models: [
-          {
-            modelId: localCube.id,
-            position: { x: 3, y: 0, z: 0 },
-            rotation: { x: 0, y: 0, z: 0 },
-            scale: { x: 0.5, y: 0.5, z: 0.5 },
-          },
-        ],
-      },
-      lookAtTargetData: {
-        model: {
-          modelId: "local-look-at-target-sphere",
-        },
-      },
-      lightData: {
-        lights: [
-          {
-            type: "ambient",
-            position: { x: 2, y: 2, z: 2 },
-            rotation: { x: 0, y: 0, z: 0 },
-            scale: { x: 1, y: 1, z: 1 },
-            intensity: 1,
-          },
-        ],
-      },
-    },
-    metadata: {
-      name: "Six",
-      desc: "Six description",
-      createdAt: new Date().toISOString(),
-      lastUsedAt: new Date().toISOString(),
-      isFavorite: false,
-      difficulty: "hard",
-      recommendedSteps: 10,
-      tags: ["test", "animation", "preset"],
-      source: "local",
-    },
-  },
-];
+//     metadata: {
+//       name: "Test Animation Preset",
+//       desc: "This is a test animation preset",
+//       createdAt: new Date().toISOString(),
+//       lastUsedAt: new Date().toISOString(),
+//       isFavorite: false,
+//       difficulty: "easy",
+//       recommendedSteps: 10,
+//       tags: ["test", "animation", "preset"],
+//       source: "local",
+//     },
+//   },
+//   // ...boxRotationsYaxis,
+//   {
+//     id: "2",
+//     animationPresetData: {
+//       animationData: {
+//         keyframes: [
+//           {
+//             id: "1",
+//             t: 0,
+//             config: {
+//               objectRotation: { x: 0, y: 0, z: 0 },
+//               objectPosition: { x: 0, y: 0, z: 0 },
+//               cameraPosition: { x: 0, y: 2, z: 6 },
+//               cameraFov: 60,
+//               lookAtTargetPosition: { x: 0, y: 1, z: 0 },
+//             },
+//           },
+//           {
+//             id: "2",
+//             t: 0.99,
+//             config: {
+//               objectRotation: { x: 0, y: 0, z: 0 },
+//               objectPosition: { x: 0, y: 3, z: 0 },
+//               cameraPosition: { x: 0, y: 5, z: 10 },
+//               cameraFov: 45,
+//               lookAtTargetPosition: { x: 0, y: 3, z: 0 },
+//             },
+//           },
+//           {
+//             id: "3",
+//             t: 1,
+//             config: {
+//               objectRotation: { x: 0, y: 0, z: 0 },
+//               objectPosition: { x: 0, y: 3, z: 0 },
+//               cameraPosition: { x: 0, y: 5, z: 10 },
+//               cameraFov: 45,
+//               lookAtTargetPosition: { x: 0, y: 3, z: 0 },
+//             },
+//           },
+//         ],
+//       },
+//       modelData: {
+//         modelId: localCylinder.id,
+//       },
+//       groundData: {
+//         modelId: localGrid.id,
+//       },
+//       staticBackground: {
+//         models: [
+//           {
+//             model: { modelId: localCube.id },
+//             inScene: {},
+//           },
+//         ],
+//         inScene: {
+//           position: { x: 3, y: 0, z: 0 },
+//           rotation: { x: 0, y: 0, z: 0 },
+//           scale: { x: 0.5, y: 0.5, z: 0.5 },
+//         },
+//       },
+//       lookAtTargetData: {
+//         modelId: localSmallSphere.id,
+//       },
+//       lightData: {
+//         lights: [
+//           {
+//             type: "ambient",
+//             position: { x: 2, y: 2, z: 2 },
+//             rotation: { x: 0, y: 0, z: 0 },
+//             scale: { x: 1, y: 1, z: 1 },
+//             intensity: 1,
+//           },
+//         ],
+//       },
+//     },
+//     metadata: {
+//       name: "Test Animation Preset 2",
+//       desc: "This is a test animation preset 2",
+//       createdAt: new Date().toISOString(),
+//       lastUsedAt: new Date().toISOString(),
+//       isFavorite: false,
+//       difficulty: "hard",
+//       recommendedSteps: 10,
+//       tags: ["test", "animation", "preset"],
+//       source: "local",
+//     },
+//   },
+//   {
+//     id: "3",
+//     animationPresetData: {
+//       animationData: {
+//         keyframes: [
+//           {
+//             id: "1",
+//             t: 0,
+//             config: {
+//               objectRotation: { x: 0, y: 0, z: 0 },
+//               objectPosition: { x: 0, y: 0, z: 0 },
+//               cameraPosition: { x: 0, y: 2, z: 6 },
+//               cameraFov: 60,
+//               lookAtTargetPosition: { x: 0, y: 1, z: 0 },
+//             },
+//           },
+//           {
+//             id: "2",
+//             t: 0.99,
+//             config: {
+//               objectRotation: { x: 0, y: 0, z: 0 },
+//               objectPosition: { x: 0, y: 3, z: 0 },
+//               cameraPosition: { x: 0, y: 5, z: 10 },
+//               cameraFov: 45,
+//               lookAtTargetPosition: { x: 0, y: 3, z: 0 },
+//             },
+//           },
+//           {
+//             id: "3",
+//             t: 1,
+//             config: {
+//               objectRotation: { x: 0, y: 0, z: 0 },
+//               objectPosition: { x: 0, y: 3, z: 0 },
+//               cameraPosition: { x: 0, y: 5, z: 10 },
+//               cameraFov: 45,
+//               lookAtTargetPosition: { x: 0, y: 3, z: 0 },
+//             },
+//           },
+//         ],
+//       },
+//       modelData: {
+//         modelId: localHead.id,
+//       },
+//       groundData: {
+//         modelId: localGrid.id,
+//       },
+//       staticBackground: {
+//         models: [
+//           {
+//             model: { modelId: localCube.id },
+//             inScene: {},
+//           },
+//         ],
+//         inScene: {
+//           position: { x: 3, y: 0, z: 0 },
+//           rotation: { x: 0, y: 0, z: 0 },
+//           scale: { x: 0.5, y: 0.5, z: 0.5 },
+//         },
+//       },
+//       lookAtTargetData: {
+//         modelId: localSmallSphere.id,
+//       },
+//       lightData: {
+//         lights: [
+//           {
+//             type: "ambient",
+//             position: { x: 2, y: 2, z: 2 },
+//             rotation: { x: 0, y: 0, z: 0 },
+//             scale: { x: 1, y: 1, z: 1 },
+//             intensity: 1,
+//           },
+//         ],
+//       },
+//     },
+//     metadata: {
+//       name: "Test Animation Preset 3",
+//       desc: "This is a test animation preset 3",
+//       createdAt: new Date().toISOString(),
+//       lastUsedAt: new Date().toISOString(),
+//       isFavorite: false,
+//       difficulty: "hard",
+//       recommendedSteps: 10,
+//       tags: ["test", "animation", "preset"],
+//       source: "local",
+//     },
+//   },
+//   {
+//     id: "4",
+//     animationPresetData: {
+//       animationData: {
+//         keyframes: [
+//           {
+//             id: "1",
+//             t: 0, // Start
+//             config: {
+//               objectRotation: { x: 0, y: 0, z: 0 },
+//               objectPosition: { x: 0, y: 0, z: 0 },
+//               cameraPosition: { x: -4, y: 2, z: 4 },
+//               cameraFov: 50,
+//               lookAtTargetPosition: { x: 0, y: 0, z: 0 },
+//             },
+//           },
+//           {
+//             id: "2",
+//             t: 0.33,
+//             config: {
+//               objectRotation: { x: 0, y: 0, z: 0 },
+//               objectPosition: { x: 0, y: 0, z: 0 },
+//               cameraPosition: { x: 4, y: 2, z: 4 },
+//               cameraFov: 50,
+//               lookAtTargetPosition: { x: 0, y: 0, z: 0 },
+//             },
+//           },
+//           {
+//             id: "3",
+//             t: 0.66,
+//             config: {
+//               objectRotation: { x: 0, y: 0, z: 0 },
+//               objectPosition: { x: 0, y: 0, z: 0 },
+//               cameraPosition: { x: 4, y: 2, z: -4 },
+//               cameraFov: 50,
+//               lookAtTargetPosition: { x: 0, y: 0, z: 0 },
+//             },
+//           },
+//           {
+//             id: "4",
+//             t: 1, // End (loops back to start if animated continuously)
+//             config: {
+//               objectRotation: { x: 0, y: 0, z: 0 },
+//               objectPosition: { x: 0, y: 0, z: 0 },
+//               cameraPosition: { x: -4, y: 2, z: 4 },
+//               cameraFov: 50,
+//               lookAtTargetPosition: { x: 0, y: 0, z: 0 },
+//             },
+//           },
+//         ],
+//       },
+//       modelData: {
+//         modelId: localHead.id,
+//       },
+//       groundData: {
+//         modelId: localGrid.id,
+//       },
+//       staticBackground: {
+//         models: [
+//           {
+//             model: { modelId: localCube.id },
+//             inScene: {},
+//           },
+//         ],
+//         inScene: {
+//           position: { x: 3, y: 0, z: 0 },
+//           rotation: { x: 0, y: 0, z: 0 },
+//           scale: { x: 0.5, y: 0.5, z: 0.5 },
+//         },
+//       },
+//       lookAtTargetData: {
+//         modelId: localSmallSphere.id,
+//       },
+//       lightData: {
+//         lights: [
+//           {
+//             type: "ambient",
+//             position: { x: 2, y: 2, z: 2 },
+//             rotation: { x: 0, y: 0, z: 0 },
+//             scale: { x: 1, y: 1, z: 1 },
+//             intensity: 1,
+//           },
+//         ],
+//       },
+//     },
+//     metadata: {
+//       name: "Four",
+//       desc: "Four description",
+//       createdAt: new Date().toISOString(),
+//       lastUsedAt: new Date().toISOString(),
+//       isFavorite: false,
+//       difficulty: "hard",
+//       recommendedSteps: 10,
+//       tags: ["test", "animation", "preset"],
+//       source: "local",
+//     },
+//   },
+//   {
+//     id: "5",
+//     animationPresetData: {
+//       animationData: {
+//         keyframes: [
+//           {
+//             id: "1",
+//             t: 0, // Start
+//             config: {
+//               objectRotation: { x: 0, y: 0, z: 0 },
+//               objectPosition: { x: 0, y: 0, z: 0 },
+//               cameraPosition: { x: -5, y: 1, z: 5 },
+//               cameraFov: 50,
+//               lookAtTargetPosition: { x: 0, y: 0, z: 0 },
+//             },
+//           },
+//           {
+//             id: "2",
+//             t: 0.25, // Zoom In
+//             config: {
+//               objectRotation: { x: 0, y: 0, z: 0 },
+//               objectPosition: { x: 0, y: 0, z: 0 },
+//               cameraPosition: { x: -1.5, y: 0.5, z: 1.5 },
+//               cameraFov: 40, // Narrower FOV for close-up
+//               lookAtTargetPosition: { x: 0, y: 0, z: 0 },
+//             },
+//           },
+//           {
+//             id: "3",
+//             t: 0.5, // Pan Left
+//             config: {
+//               objectRotation: { x: 0, y: 0, z: 0 },
+//               objectPosition: { x: 0, y: 0, z: 0 },
+//               cameraPosition: { x: 1.5, y: 0.5, z: 1.5 },
+//               cameraFov: 40,
+//               lookAtTargetPosition: { x: 0, y: 0, z: 0 },
+//             },
+//           },
+//           {
+//             id: "4",
+//             t: 0.75, // Pan Right
+//             config: {
+//               objectRotation: { x: 0, y: 0, z: 0 },
+//               objectPosition: { x: 0, y: 0, z: 0 },
+//               cameraPosition: { x: -1.5, y: 0.5, z: 1.5 },
+//               cameraFov: 40,
+//               lookAtTargetPosition: { x: 0, y: 0, z: 0 },
+//             },
+//           },
+//           {
+//             id: "5",
+//             t: 1, // Zoom Out
+//             config: {
+//               objectRotation: { x: 0, y: 0, z: 0 },
+//               objectPosition: { x: 0, y: 0, z: 0 },
+//               cameraPosition: { x: -5, y: 1, z: 5 },
+//               cameraFov: 50,
+//               lookAtTargetPosition: { x: 0, y: 0, z: 0 },
+//             },
+//           },
+//         ],
+//       },
+//       modelData: {
+//         modelId: localHead.id,
+//       },
+//       groundData: {
+//         modelId: localGrid.id,
+//       },
+//       staticBackground: {
+//         models: [
+//           {
+//             model: { modelId: localCube.id },
+//             inScene: {},
+//           },
+//         ],
+//         inScene: {
+//           position: { x: 3, y: 0, z: 0 },
+//           rotation: { x: 0, y: 0, z: 0 },
+//           scale: { x: 0.5, y: 0.5, z: 0.5 },
+//         },
+//       },
+//       lookAtTargetData: {
+//         modelId: localSmallSphere.id,
+//       },
+//       lightData: {
+//         lights: [
+//           {
+//             type: "ambient",
+//             position: { x: 2, y: 2, z: 2 },
+//             rotation: { x: 0, y: 0, z: 0 },
+//             scale: { x: 1, y: 1, z: 1 },
+//             intensity: 1,
+//           },
+//         ],
+//       },
+//     },
+//     metadata: {
+//       name: "Five",
+//       desc: "Five description",
+//       createdAt: new Date().toISOString(),
+//       lastUsedAt: new Date().toISOString(),
+//       isFavorite: false,
+//       difficulty: "hard",
+//       recommendedSteps: 10,
+//       tags: ["test", "animation", "preset"],
+//       source: "local",
+//     },
+//   },
+//   {
+//     id: "6",
+//     animationPresetData: {
+//       animationData: {
+//         keyframes: [
+//           {
+//             id: "1",
+//             t: 0, // Start
+//             config: {
+//               objectRotation: { x: 0, y: 0, z: 0 },
+//               objectPosition: { x: 0, y: 0, z: 0 },
+//               cameraPosition: { x: -3, y: 1, z: 3 },
+//               cameraFov: 50,
+//               lookAtTargetPosition: { x: 0, y: 0, z: 0 },
+//             },
+//           },
+//           {
+//             id: "2",
+//             t: 0.5, // Halfway through rotation
+//             config: {
+//               objectRotation: { x: 0, y: Math.PI, z: 0 }, // Rotate 180 degrees around Y
+//               objectPosition: { x: 0, y: 0, z: 0 },
+//               cameraPosition: { x: -3, y: 1, z: 3 },
+//               cameraFov: 50,
+//               lookAtTargetPosition: { x: 0, y: 0, z: 0 },
+//             },
+//           },
+//           {
+//             id: "3",
+//             t: 1, // Full rotation
+//             config: {
+//               objectRotation: { x: 0, y: Math.PI * 2, z: 0 }, // Rotate 360 degrees around Y
+//               objectPosition: { x: 0, y: 0, z: 0 },
+//               cameraPosition: { x: -3, y: 1, z: 3 },
+//               cameraFov: 50,
+//               lookAtTargetPosition: { x: 0, y: 0, z: 0 },
+//             },
+//           },
+//         ],
+//       },
+//       modelData: {
+//         modelId: localHead.id,
+//       },
+//       groundData: {
+//         modelId: localGrid.id,
+//       },
+//       staticBackground: {
+//         models: [
+//           {
+//             model: { modelId: localCube.id },
+//             inScene: {},
+//           },
+//         ],
+//         inScene: {
+//           position: { x: 3, y: 0, z: 0 },
+//           rotation: { x: 0, y: 0, z: 0 },
+//           scale: { x: 0.5, y: 0.5, z: 0.5 },
+//         },
+//       },
+//       lookAtTargetData: {
+//         modelId: localSmallSphere.id,
+//       },
+//       lightData: {
+//         lights: [
+//           {
+//             type: "ambient",
+//             position: { x: 2, y: 2, z: 2 },
+//             rotation: { x: 0, y: 0, z: 0 },
+//             scale: { x: 1, y: 1, z: 1 },
+//             intensity: 1,
+//           },
+//         ],
+//       },
+//     },
+//     metadata: {
+//       name: "Six",
+//       desc: "Six description",
+//       createdAt: new Date().toISOString(),
+//       lastUsedAt: new Date().toISOString(),
+//       isFavorite: false,
+//       difficulty: "hard",
+//       recommendedSteps: 10,
+//       tags: ["test", "animation", "preset"],
+//       source: "local",
+//     },
+//   },
+// ];
 
 export {
   testAnimationPresets,

@@ -1,8 +1,9 @@
 "use client";
 import { useTestingNewStore } from "@/app/newtesting/page-content";
-import { Vec3 } from "../../scene-store";
+
 import { AnimationKeyframe } from "../animation/types/types";
 import KeyframeEditor from "./keyframe-editor";
+import { Vec3 } from "../../scene-store/shared";
 
 export const RecordTab = ({
   keyframes,
@@ -11,7 +12,7 @@ export const RecordTab = ({
   keyframes: AnimationKeyframe[];
   setKeyframes: (keyframes: AnimationKeyframe[]) => void;
 }) => {
-  const object = useTestingNewStore((state) => state.object.data);
+  const object = useTestingNewStore((state) => state.object);
   const setObjectPosition = useTestingNewStore(
     (state) => state.setObjectPosition
   );
@@ -31,11 +32,7 @@ export const RecordTab = ({
     (state) => state.setLookAtTargetPosition
   );
 
-  const lookAtTarget = useTestingNewStore((state) => state.lookAtTarget.data);
-  const resetObject = useTestingNewStore((state) => state.resetObject);
-  const objectDefaults = useTestingNewStore(
-    (state) => state.getObjectDefaults
-  )();
+  const lookAtTarget = useTestingNewStore((state) => state.lookAtTarget);
 
   const applyKeyframe = (
     objectRotation: Vec3,
@@ -51,6 +48,12 @@ export const RecordTab = ({
     setLookAtTargetPosition(lookAtTargetPosition);
   };
 
+  const objectPosition =
+    object.data.inScene.position || object.defaultsInScene.position;
+  const objectRotation =
+    object.data.inScene.rotation || object.defaultsInScene.rotation;
+  const lookAtTargetPosition =
+    lookAtTarget.data.inScene.position || lookAtTarget.defaultsInScene.position;
   return (
     <KeyframeEditor
       keyframes={keyframes}
@@ -59,9 +62,9 @@ export const RecordTab = ({
       getCurrentState={() => ({
         cameraFov: camera.fov,
         cameraPosition: camera.position,
-        lookAtTargetPosition: lookAtTarget.position,
-        objectPosition: object.position,
-        objectRotation: object.rotation,
+        lookAtTargetPosition: lookAtTargetPosition,
+        objectPosition: objectPosition,
+        objectRotation: objectRotation,
       })}
     />
   );

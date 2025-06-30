@@ -93,7 +93,7 @@ export const CreatePresetForm = ({
               <FormControl>
                 <Input {...field} />
               </FormControl>
-              <FormDescription>This is name.</FormDescription>
+
               <FormMessage />
             </FormItem>
           )}
@@ -108,7 +108,7 @@ export const CreatePresetForm = ({
               <FormControl>
                 <Textarea {...field} />
               </FormControl>
-              <FormDescription>This is desc.</FormDescription>
+
               <FormMessage />
             </FormItem>
           )}
@@ -131,7 +131,7 @@ export const CreatePresetForm = ({
                   }}
                 />
               </FormControl>
-              <FormDescription>This is rec steps.</FormDescription>
+
               <FormMessage />
             </FormItem>
           )}
@@ -153,7 +153,7 @@ export const CreatePresetForm = ({
                   createTag={(label) => label.toLocaleLowerCase()}
                 />
               </FormControl>
-              <FormDescription>This is tags.</FormDescription>
+
               <FormMessage />
             </FormItem>
           )}
@@ -183,7 +183,7 @@ export const CreatePresetForm = ({
                   </SelectContent>
                 </Select>
               </FormControl>
-              <FormDescription>This is difficulty.</FormDescription>
+
               <FormMessage />
             </FormItem>
           )}

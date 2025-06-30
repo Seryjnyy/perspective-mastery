@@ -1,18 +1,5 @@
 "use client";
 import {
-  Menubar,
-  MenubarContent,
-  MenubarItem,
-  MenubarMenu,
-  MenubarSeparator,
-  MenubarShortcut,
-  MenubarSub,
-  MenubarSubContent,
-  MenubarSubTrigger,
-  MenubarTrigger,
-} from "@/components/ui/menubar";
-import { v4 as uuidv4 } from "uuid";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -20,6 +7,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Menubar,
+  MenubarContent,
+  MenubarItem,
+  MenubarMenu,
+  MenubarSeparator,
+  MenubarSub,
+  MenubarSubContent,
+  MenubarSubTrigger,
+  MenubarTrigger,
+} from "@/components/ui/menubar";
 import { Canvas } from "@react-three/fiber";
 import {
   createContext,
@@ -30,38 +28,29 @@ import {
   useRef,
   useState,
 } from "react";
+import { v4 as uuidv4 } from "uuid";
 import { ControlsPanel } from "../app/components/control-panel/control-panel";
 import { TestingScene } from "../challenges/[challenge]/page";
-import localPrimitiveModelsRepo from "../features/animation/model-repo";
 import SceneVisualisation from "../features/scene-previewer/scene-visualisation";
 
 import {
-  CameraData,
   createSceneStore,
   deletePersistedSceneStore,
-  SCENE_STORE_NAME,
-  SceneState,
-} from "../scene-store";
+} from "../scene-store/scene-store";
 
 import { Button } from "@/components/ui/button";
 import { Pencil } from "lucide-react";
 import { CONTROL_PANEL_TABS } from "../app/components/control-panel/control-panel-tabs";
-import { useLocalAnimationPresetsStore } from "../features/animation-recorder/local-animation-preset-store";
+
 import { RecordTab } from "../features/animation-recorder/record-window";
 
-import { useModelsData } from "../features/scene/models/use-models";
-import { StoreApi } from "zustand";
-import { AnimationKeyframe } from "../features/animation/types/types";
-import { AnimationPresetLocalCreation, Difficulty } from "../types2";
-import ModelGetterLoader from "../features/scene/components/model-getter-loader";
-import { getLocalStorageItemsByPrefix } from "@/app/newtesting/features/animation-recorder/utils/utils";
 import {
   createRecorderSessionStore,
   RECORDER_SESSION_STORE_NAME,
   RecorderSessionStore,
   RecorderSessionStoreState,
 } from "@/app/newtesting/features/animation-recorder/recorder-session-store";
-import { useStore } from "zustand/index";
+import { getLocalStorageItemsByPrefix } from "@/app/newtesting/features/animation-recorder/utils/utils";
 import {
   CameraControlsInScene,
   CameraDataCollector,
@@ -69,8 +58,14 @@ import {
   StoreContext,
   useTestingNewStore,
 } from "@/app/newtesting/page-content";
-import { Input } from "@/components/ui/input";
+import { StoreApi } from "zustand";
+import { useStore } from "zustand/index";
 import { CreatePresetForm } from "../features/animation-recorder/components/create-preset-form";
+import ModelGetterLoader from "../features/scene/components/model-getter-loader";
+import { Difficulty } from "../types2";
+import { SceneState } from "../scene-store/shared";
+import { CameraData } from "../scene-store/camera-slice";
+import { TransformControls } from "@react-three/drei";
 
 type PresetCreatorState = {
   id: string;
@@ -138,7 +133,24 @@ export default function PresetCreatorPage() {
   const [id, setId] = useState<string | null>(null);
 
   useEffect(() => {
-    setId("cb10c821-0409-4455-bba3-414f52fa3075");
+    const sessions =
+      getLocalStorageItemsByPrefix<ZustandRecorderSessionStoreState>(
+        RECORDER_SESSION_STORE_NAME
+      );
+
+    const sorted = Object.entries(sessions).toSorted((a, b) => {
+      const aDate = new Date(a[1].state.createdAt);
+      const bDate = new Date(b[1].state.createdAt);
+      return bDate.getTime() - aDate.getTime(); // Sort by createdAt in descending order
+    });
+
+    if (sorted.length > 0) {
+      const mostRecentId = sorted[0][0]; // Get the ID of the most recent preset
+      setId(mostRecentId);
+    } else {
+      // If no presets found, set a new ID
+      setId(uuidv4());
+    }
   }, []);
 
   if (id == null) return;
@@ -228,6 +240,9 @@ const Page = () => {
   const recordSessionMetadata = useRecorderSessionStore(
     (state) => state.metadata
   );
+  const recordSessionLastUpdateAt = useRecorderSessionStore(
+    (state) => state.lastUpdated
+  );
   const keyframes = useRecorderSessionStore((state) => state.keyframes);
   const setKeyframes = useRecorderSessionStore((state) => state.setKeyframes);
   const setSessionName = useRecorderSessionStore((state) => state.setName);
@@ -259,6 +274,7 @@ const Page = () => {
 
     // Need to first move from the current stores to delete them, there might be issues if we delete the store while it's being used
     setId(uuidv4());
+    deletePersistedSceneStore(id);
     deletePersistedSceneStore(id);
     // toast message
   };
@@ -292,23 +308,40 @@ const Page = () => {
   // };
 
   const lookAtTargetModel = useMemo(() => {
-    return localPrimitiveModelsRepo.getLocalModel(
-      "local-look-at-target-sphere"
+    return (
+      <ModelGetterLoader
+        modelId={lookAtTarget.model.modelId}
+        position={lookAtTarget.model.transform?.position}
+        rotation={lookAtTarget.model.transform?.rotation}
+        scale={lookAtTarget.model.transform?.scale}
+      />
     );
-  }, [lookAtTarget.position]);
+  }, [lookAtTarget]);
 
   const groundModel = useMemo(() => {
-    return localPrimitiveModelsRepo.getLocalModel("local-grid");
-  }, [ground.model.position]);
+    console.log("GROUNDED", ground.model.modelId);
+    return (
+      <ModelGetterLoader
+        modelId={ground.model.modelId}
+        position={ground.model.transform?.position}
+        rotation={ground.model.transform?.rotation}
+        scale={ground.model.transform?.scale}
+      />
+    );
+  }, [ground.model]);
 
   const model = useMemo(() => {
-    console.log("wtf ", object);
-    return <ModelGetterLoader modelId={object.model.modelId} />;
-  }, [object.model.modelId, object.position, object.scale, object.rotation]);
+    return (
+      <ModelGetterLoader
+        modelId={object.model.modelId}
+        position={object.model.transform?.position}
+        rotation={object.model.transform?.rotation}
+        scale={object.model.transform?.scale}
+      />
+    );
+  }, [object.model]);
 
-  const staticBackgroundModels = useMemo(() => {
-    return <></>;
-  }, []);
+  const staticBackgroundModels: any[] = [];
 
   const lights = useMemo(() => {
     return (
@@ -320,74 +353,55 @@ const Page = () => {
     );
   }, []);
 
-  const { setLocalAnimationPreset } = useLocalAnimationPresetsStore();
-  const { getModelData } = useModelsData();
+  // const exportPreset = () => {
+  //   console.log("exporting preset");
 
-  // useEffect(() => {
-  //   const loadModel = async () => {
-  //     const model = await getModelData(
-  //       currentPreset.animationPresetData.modelData.modelId
-  //     );
-  //     if (model) {
-  //       setObjectModel(model);
-  //     }
+  //   const preset: AnimationPresetLocalCreation = {
+  //     animationPresetData: {
+  //       animationData: {
+  //         keyframes: keyframes,
+  //       },
+  //       modelData: {
+  //         modelId: object.model.modelId,
+  //       },
+  //       groundData: {
+  //         modelId: ground.model.modelId,
+  //       },
+  //       staticBackground: {
+  //         models: [],
+  //       },
+  //       lookAtTargetData: {
+  //         modelId: lookAtTarget.model.modelId,
+  //       },
+  //       lightData: {
+  //         lights: [],
+  //       },
+  //     },
+  //     metadata: {
+  //       name: recordSessionMetadata.name,
+  //       desc: recordSessionMetadata.desc,
+  //       difficulty: recordSessionMetadata.difficulty,
+  //       recommendedSteps: recordSessionMetadata.recommendedSteps,
+  //       tags: recordSessionMetadata.tags,
+  //     },
   //   };
-  //   loadModel();
-  // }, [currentPreset.animationPresetData]);
 
-  // persist seperately
-  // keyframes
-  const exportPreset = () => {
-    console.log("exporting preset");
+  //   const json = JSON.stringify(preset);
+  //   console.log(json);
+  //   // MOVE_THIS_FUNCTION_CREATE_PRESET(preset);
+  //   // const blob = new Blob([json], { type: "application/json" });
+  //   // const url = URL.createObjectURL(blob);
+  //   // const a = document.createElement("a");
+  // };
 
-    const preset: AnimationPresetLocalCreation = {
-      animationPresetData: {
-        animationData: {
-          keyframes: keyframes,
-        },
-        modelData: {
-          modelId: object.model.modelId,
-        },
-        groundData: {
-          modelId: ground.model.modelId,
-        },
-        staticBackground: {
-          models: [],
-        },
-        lookAtTargetData: {
-          model: {
-            modelId: lookAtTarget.model.modelId,
-          },
-        },
-        lightData: {
-          lights: [],
-        },
-      },
-      metadata: {
-        name: recordSessionMetadata.name,
-        desc: recordSessionMetadata.desc,
-        difficulty: recordSessionMetadata.difficulty,
-        recommendedSteps: recordSessionMetadata.recommendedSteps,
-        tags: recordSessionMetadata.tags,
-      },
-    };
-
-    const json = JSON.stringify(preset);
-    console.log(json);
-    MOVE_THIS_FUNCTION_CREATE_PRESET(preset);
-    // const blob = new Blob([json], { type: "application/json" });
-    // const url = URL.createObjectURL(blob);
-    // const a = document.createElement("a");
-  };
-
-  const MOVE_THIS_FUNCTION_CREATE_PRESET = (
-    data: AnimationPresetLocalCreation
-  ) => {
-    setLocalAnimationPreset({
-      ...data,
-      id: crypto.randomUUID(),
-    });
-  };
+  // const MOVE_THIS_FUNCTION_CREATE_PRESET = (
+  //   data: AnimationPresetLocalCreation
+  // ) => {
+  //   setLocalAnimationPreset({
+  //     ...data,
+  //     id: crypto.randomUUID(),
+  //   });
+  // };
 
   // useEffect(() => {
   //   // Slight hack to make sure the store gets persisted in local storage, if i doesn't then it won't show up in the recent presets list
@@ -402,8 +416,8 @@ const Page = () => {
   const [isEditMetadataDialogOpen, setIsEditMetadataDialogOpen] =
     useState(false);
   return (
-    <div className="h-[calc(100vh-36px)] mt-[36px] flex flex-col">
-      <div className=" fixed top-0 left-0 px-2 z-50 flex items-center h-[36px] gap-6">
+    <div className="h-[calc(100vh-48px)] mt-[48px] flex flex-col">
+      <div className=" fixed top-0 left-0 px-2 z-50 flex items-center h-[48px] gap-6">
         <Dialog
           open={isEditMetadataDialogOpen}
           onOpenChange={setIsEditMetadataDialogOpen}
@@ -415,10 +429,9 @@ const Page = () => {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Save Preset</DialogTitle>
-              <DialogDescription>
-                This action cannot be undone. This will permanently delete your
-                account and remove your data from our servers.
+              <DialogTitle>Edit preset</DialogTitle>
+              <DialogDescription className="sr-only">
+                {/* TODO : desc */}
               </DialogDescription>
             </DialogHeader>
 
@@ -444,6 +457,13 @@ const Page = () => {
                   setIsEditMetadataDialogOpen(false);
                 }}
               />
+              <div className="w-full flex justify-end">
+                <span className="text-xs text-muted-foreground mt-2 flex items-center gap-2 ">
+                  <span>last update at:</span>
+                  {recordSessionLastUpdateAt &&
+                    new Date(recordSessionLastUpdateAt).toLocaleString()}
+                </span>
+              </div>
             </div>
           </DialogContent>
         </Dialog>
@@ -454,17 +474,11 @@ const Page = () => {
           <span>{recordSessionMetadata.name}</span>
           <span className="text-muted-foreground">{id}</span>
         </div>
-
-        <div>
-          <Button onClick={() => setId(uuidv4())}>New</Button>
-        </div>
         <RecorderMenuBar
           onNewPreset={() => setId(uuidv4())}
           onSelectPreset={(id) => setId(id)}
           onDeletePreset={deletePreset}
         />
-        <Button onClick={exportPreset}>Export</Button>
-        <div>{/* <Button onClick={clearCurrentPreset}>Clear</Button> */}</div>
       </div>
 
       {/* Top Row */}
@@ -474,18 +488,25 @@ const Page = () => {
             camera={camera}
             object={object}
             lookAtTarget={lookAtTarget}
+            ground={ground}
           />
         </div>
 
         {/* Center Panel */}
         <div className="flex-1 overflow-auto bg-black border-x border-t border-white/70 relative">
           <Canvas>
+            {/* <TransformControls mode="translate">
+              <mesh>
+                <boxGeometry args={[2, 2, 2]} />
+                <meshBasicMaterial color={"#33ff20"} opacity={100} />
+              </mesh>
+            </TransformControls> */}
             <TestingScene
-              objectPosition={object.position}
-              objectScale={object.scale}
-              groundPosition={ground.model.position ?? { x: 0, y: 0, z: 0 }}
-              objectRotation={object.rotation}
-              lookAtTarget={lookAtTarget.position}
+              objectPosition={object.inScene.position}
+              objectScale={object.inScene.scale}
+              groundPosition={ground.inScene.position}
+              objectRotation={object.inScene.rotation}
+              lookAtTarget={lookAtTarget.inScene.position}
               showTarget={lookAtTarget.isShowTargetMarker}
               groundModel={groundModel}
               lookAtTargetModel={lookAtTargetModel}
@@ -497,7 +518,7 @@ const Page = () => {
             <CameraControlsInScene
               cameraPosition={camera.desiredPosition}
               cameraFov={camera.desiredFov}
-              lookAtTarget={lookAtTarget.position}
+              lookAtTarget={lookAtTarget.inScene.position}
               lookAtMode={lookAtTarget.mode}
               isShowGizmos={false}
             />
@@ -505,17 +526,19 @@ const Page = () => {
           </Canvas>
           <div className="absolute top-0 left-0 size-[8rem] backdrop-blur-md rounded-br-xl overflow-hidden border-r border-b">
             <SceneVisualisation
-              lookAtTargetPosition={lookAtTarget.position}
+              lookAtTargetPosition={
+                lookAtTarget.inScene.position || { x: 0, y: 0, z: 0 }
+              }
               cameraPosition={camera.position}
               cameraRotation={camera.rotation}
               fov={camera.desiredFov}
               aspect={camera.aspect}
               near={camera.near}
               far={camera.far}
-              objectPosition={object.position}
-              objectRotation={object.rotation}
-              objectScale={object.scale}
-              groundPosition={ground.position}
+              objectPosition={object.inScene.position || { x: 0, y: 0, z: 0 }}
+              objectRotation={object.inScene.rotation || { x: 0, y: 0, z: 0 }}
+              objectScale={object.inScene.scale || { x: 1, y: 1, z: 1 }}
+              groundPosition={ground.inScene.position || { x: 0, y: 0, z: 0 }}
               model={model}
               groundModel={groundModel}
               lookAtTargetModel={lookAtTargetModel}
@@ -558,7 +581,7 @@ const RecorderMenuBar = ({
   return (
     <Menubar>
       <MenubarMenu>
-        <MenubarTrigger>File</MenubarTrigger>
+        <MenubarTrigger className="outline-none">File</MenubarTrigger>
         <MenubarContent>
           <MenubarItem onClick={onNewPreset}>New</MenubarItem>
           <MenubarSub>
@@ -575,8 +598,13 @@ const RecorderMenuBar = ({
   );
 };
 
-type ZustandRecorderSessionStoreState = {
+export type ZustandRecorderSessionStoreState = {
   state: RecorderSessionStoreState;
+  version: number;
+};
+
+export type ZustandSceneStoreState = {
+  state: SceneState;
   version: number;
 };
 

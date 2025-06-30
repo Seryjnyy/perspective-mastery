@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import {
   Heart,
   ThumbsUp,
@@ -37,7 +37,7 @@ import { AnimationPresetLocalModel, testAnimationPresets } from "./types2";
 import { useRouter } from "next/navigation";
 import localPrimitiveModelsRepo from "./features/animation/model-repo";
 import { animationPresetRepo } from "./features/animation/animation-preset-repo";
-import { useLocalAnimationPresetsStore } from "./features/animation-recorder/local-animation-preset-store";
+import { getLocalAnimationPresets } from "./features/animation-animation-recorder/local-preset-to-animation";
 
 const propertyIcons = {
   "Camera Moves": Camera,
@@ -105,8 +105,6 @@ export default function ContentLibrarySection({
     // Handle upvote logic here
   };
 
-  const { localAnimationPresets } = useLocalAnimationPresetsStore();
-
   useEffect(() => {
     const animationPresets = animationPresetRepo.getAnimationPresets();
     if (selectedAnimationPreset == null && animationPresets.length > 0) {
@@ -116,8 +114,12 @@ export default function ContentLibrarySection({
 
   const canUpvote = false;
 
+  const localPresets = useMemo(() => {
+    return getLocalAnimationPresets();
+  }, []);
+
   return (
-    <div className="h-[calc(100vh-4rem)] flex">
+    <div className="h-full flex">
       {/* Left Panel - Content Library */}
       <div className="w-1/2 border-r bg-background flex flex-col">
         <div className="p-6 border-b">
@@ -242,7 +244,7 @@ export default function ContentLibrarySection({
               value="library"
               className="flex-1 space-y-4 overflow-y-auto p-2"
             >
-              {localAnimationPresets.map((item) => (
+              {localPresets.map((item) => (
                 <Card
                   key={item.id}
                   className={`cursor-pointer transition-all hover:shadow-md ${

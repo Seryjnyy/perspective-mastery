@@ -25,7 +25,7 @@ import localPrimitiveModelsRepo from "../../features/animation/model-repo";
 import ModelLoader from "../../features/scene/components/model-loader";
 import { useModelsData } from "../../features/scene/models/use-models";
 import { AnimationPresetLocalModel } from "../../types2";
-import { CameraData } from "../../scene-store";
+
 import {
   CameraControlsInScene,
   CameraDataCollector,
@@ -33,6 +33,8 @@ import {
   useTestingNewStore,
 } from "../../page-content";
 import ModelGetterLoader from "../../features/scene/components/model-getter-loader";
+import { set } from "react-hook-form";
+import { CameraData } from "../../scene-store/camera-slice";
 
 type Checked = DropdownMenuCheckboxItemProps["checked"];
 
@@ -77,17 +79,14 @@ function GuidedChallenge({
     (state) => state.setLookAtTargetPosition
   );
 
-  const lookAtTarget = useTestingNewStore((state) => state.lookAtTarget.data);
+  const lookAtTarget = useTestingNewStore((state) => state.lookAtTarget);
   const setLookAtTarget = useTestingNewStore((state) => state.setLookAtTarget);
 
-  const object = useTestingNewStore((state) => state.object.data);
-  const setObject = useTestingNewStore((state) => state.setObjectModel);
+  const object = useTestingNewStore((state) => state.object);
 
-  const ground = useTestingNewStore((state) => state.ground.data);
+  const ground = useTestingNewStore((state) => state.ground);
 
   const navigate = useRouter();
-
-  const models = useModelsData();
 
   // Sync store data with actual camera data
   const handleCameraDataChange = (data: CameraData) => {
@@ -102,83 +101,45 @@ function GuidedChallenge({
     });
   };
 
-  // Look at object position
-  const lookAtObject = () => {
-    setLookAtTarget({
-      position: {
-        x: object.position.x,
-        y: object.position.y,
-        z: object.position.z,
-      },
-    });
-    setLookAtTarget({
-      mode: "manual",
-    });
-  };
-
   const model = useMemo(() => {
     const modelData = animationPreset.animationPresetData.modelData;
     return (
       <ModelGetterLoader
-        modelId={modelData.modelId}
-        position={modelData.position}
-        rotation={modelData.rotation}
-        scale={modelData.scale}
+        modelId={modelData.model.modelId}
+        position={modelData.model.transform?.position}
+        rotation={modelData.model.transform?.rotation}
+        scale={modelData.model.transform?.scale}
         showBoundingBox={true}
+        onLoadedModel={() => {
+          setIsModelLoaded(true);
+        }}
       />
     );
   }, [animationPreset]);
 
   const groundModel = useMemo(() => {
     const groundData = animationPreset.animationPresetData.groundData;
-
     return (
       <ModelGetterLoader
-        modelId={groundData.modelId}
-        position={groundData.position}
-        rotation={groundData.rotation}
-        scale={groundData.scale}
+        modelId={groundData.model.modelId}
+        position={groundData.model.transform?.position}
+        rotation={groundData.model.transform?.rotation}
+        scale={groundData.model.transform?.scale}
         showBoundingBox={true}
       />
     );
   }, [animationPreset]);
 
-  // TODO : duplicate code
   const lookAtTargetModel = useMemo(() => {
     const lookAtTargetData =
       animationPreset.animationPresetData.lookAtTargetData;
-    return localPrimitiveModelsRepo.getLocalModel(
-      lookAtTargetData.model.modelId,
-      lookAtTargetData.position,
-      lookAtTargetData.scale,
-      lookAtTargetData.rotation
-    );
-  }, [animationPreset]);
-
-  const staticBackgroundModels = useMemo(() => {
-    const staticBackgroundData =
-      animationPreset.animationPresetData.staticBackground;
-    const models = staticBackgroundData.models.map((model) =>
-      localPrimitiveModelsRepo.getLocalModel(
-        model.modelId,
-        model.position,
-        model.scale,
-        model.rotation
-      )
-    );
-    return <group>{models}</group>;
-  }, [animationPreset]);
-
-  const lights = useMemo(() => {
-    const lightData = animationPreset.animationPresetData.lightData;
-    return lightData.lights.map((light) =>
-      localPrimitiveModelsRepo.getLightModel(
-        light.type,
-        light.position,
-        light.scale,
-        light.rotation,
-        light.intensity
-      )
+    return (
+      <ModelGetterLoader
+        modelId={lookAtTargetData.model.modelId}
+        position={lookAtTargetData.model.transform?.position}
+        rotation={lookAtTargetData.model.transform?.rotation}
+        scale={lookAtTargetData.model.transform?.scale}
+      />
     );
   }, [animationPreset]);
 
@@ -189,7 +150,6 @@ function GuidedChallenge({
 
   const [hasReachedEnd, setHasReachedEnd] = useState(false);
 
-  const isAbleToHideGround = true;
   const [isCompleted, setIsCompleted] = useState(false);
 
   const [isModelLoaded, setIsModelLoaded] = useState(false);
@@ -218,16 +178,18 @@ function GuidedChallenge({
     );
   }, [isModelLoaded]);
 
+  const objectPosition =
+    object.data.inScene.position || object.defaultsInScene.position;
+  const objectScale = object.data.inScene.scale || object.defaultsInScene.scale;
+  const groundPosition =
+    ground.data.inScene.position || object.defaultsInScene.scale;
+  const objectRotation =
+    object.data.inScene.rotation || object.defaultsInScene.rotation;
+  const lookAtTargetPosition =
+    lookAtTarget.data.inScene.position || lookAtTarget.defaultsInScene.position;
+
   return (
-    <div className="w-full h-[90vh] relative">
-      {/* Data Info Panel */}
-      {/* <div className="absolute top-2 left-2 bg-black/70 text-white p-3 rounded-md font-mono text-xs max-w-[300px] z-10">
-        <DataDisplayWindow
-          camera={camera}
-          object={object}
-          lookAtTarget={lookAtTarget}
-        />
-      </div> */}
+    <div className="w-full h-[calc(100vh-48px)] mt-[48px] relative">
       {showMetadata && (
         <div className="absolute top-2 right-2 backdrop-blur-sm text-white p-3 rounded-md font-mono text-xs max-w-[300px] z-10">
           <div className="flex flex-col">
@@ -242,21 +204,21 @@ function GuidedChallenge({
       {showPreview && (
         <div className="absolute bottom-2 right-2 backdrop-blur-md  text-white overflow-hidden p-3 rounded-md w-fit h-fit z-10 border">
           <SceneVisualisationPreview
-            lookAtTargetPosition={lookAtTarget.position}
+            lookAtTargetPosition={lookAtTargetPosition}
             cameraPosition={camera.position}
             cameraRotation={camera.rotation}
             fov={camera.desiredFov}
             aspect={camera.aspect}
             near={camera.near}
             far={camera.far}
-            objectPosition={object.position}
-            objectRotation={object.rotation}
-            objectScale={object.scale}
-            groundPosition={ground.position}
+            objectPosition={objectPosition}
+            objectRotation={objectRotation}
+            objectScale={objectScale}
+            groundPosition={groundPosition}
             model={model}
             groundModel={groundModel}
             lookAtTargetModel={lookAtTargetModel}
-            staticBackgroundModels={staticBackgroundModels}
+            staticBackgroundModels={[]}
             showFrustum={true}
             actions={
               <Button
@@ -272,10 +234,6 @@ function GuidedChallenge({
           />
         </div>
       )}
-
-      {/* <div className="absolute top-2 right-2 bg-black/70 text-white p-3 rounded-md font-mono z-10 min-w-[250px]">
-        <ControlsPanel lookAtObject={lookAtObject} />
-      </div> */}
 
       <div className="absolute top-2 left-2 p-3 rounded-md text-white  z-10 backdrop-blur-sm">
         <Button
@@ -393,7 +351,7 @@ function GuidedChallenge({
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id={"show-look-at-target-checkbox"}
-                      checked={lookAtTarget.isShowTargetMarker}
+                      checked={lookAtTarget.data.isShowTargetMarker}
                       onCheckedChange={(checked) => {
                         if (checked) {
                           setLookAtTarget({
@@ -421,24 +379,24 @@ function GuidedChallenge({
       </div>
       <Canvas>
         <TestingScene
-          objectPosition={object.position}
-          objectScale={object.scale}
-          groundPosition={ground.position}
-          objectRotation={object.rotation}
-          lookAtTarget={lookAtTarget.position}
-          showTarget={lookAtTarget.isShowTargetMarker}
+          objectPosition={objectPosition}
+          objectScale={objectScale}
+          groundPosition={groundPosition}
+          objectRotation={objectRotation}
+          lookAtTarget={lookAtTargetPosition}
+          showTarget={lookAtTarget.data.isShowTargetMarker}
           model={model}
           groundModel={groundModel}
           lookAtTargetModel={lookAtTargetModel}
-          staticBackgroundModels={staticBackgroundModels}
-          lights={lights}
+          staticBackgroundModels={[]}
+          lights={[]}
           showGround={showGround}
         />
         <CameraControlsInScene
           cameraPosition={camera.desiredPosition}
           cameraFov={camera.desiredFov}
-          lookAtTarget={lookAtTarget.position}
-          lookAtMode={lookAtTarget.mode}
+          lookAtTarget={lookAtTarget.data.inScene.position}
+          lookAtMode={lookAtTarget.data.mode}
           isShowGizmos={false}
         />
         <CameraDataCollector onCameraDataChange={handleCameraDataChange} />
@@ -491,8 +449,6 @@ export const TestingScene = ({
 
   return (
     <>
-      {/* <ambientLight intensity={0.5} />
-      <pointLight position={[10, 10, 10]} intensity={1} /> */}
       {/* TODO : NOT WORKING PROPERLY, there is light in the scene no matter what, and im not sure if additional light work */}
       {lights}
       {/* Controllable group that can contain any mesh/models */}
